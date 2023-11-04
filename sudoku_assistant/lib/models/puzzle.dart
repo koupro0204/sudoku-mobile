@@ -1,11 +1,13 @@
+import 'dart:convert';
+
 class Puzzle {
-  final int? id; // Added an optional ID for database operations
+  final int? id; // Nullable, because it will be null when we create a new puzzle
   final List<List<int>> grid;
   final List<List<int>> currentState;
   final String name;
   final String status;
   final DateTime creationDate;
-  final String? sharedCode;
+  final String? sharedCode; // Nullable, because a puzzle might not be shared
   final String source;
 
   Puzzle({
@@ -18,37 +20,27 @@ class Puzzle {
     this.sharedCode,
     required this.source,
   });
-  // Constructor for an empty puzzle
-  Puzzle.empty()
-      : id = null,
-        grid = List.generate(9, (index) => List.filled(9, 0)),
-        currentState = List.generate(9, (index) => List.filled(9, 0)),
-        name = "Unnamed Puzzle",
-        status = "NotCompleted",  // Assuming a string representation for simplicity
-        creationDate = DateTime.now(),
-        sharedCode = null,
-        source = "Created";  // Assuming "Created" represents puzzles created by the user
 
-  // Convert Puzzle object to Map
+  // Convert a Puzzle instance into a Map. The keys must correspond to the names of the columns in the database.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'grid': gridToString(grid),
-      'currentState': gridToString(currentState),
+      'grid': jsonEncode(grid), // Encoding the grid to a JSON string
+      'currentState': jsonEncode(currentState), // Encoding the currentState to a JSON string
       'name': name,
       'status': status,
-      'creationDate': creationDate.toIso8601String(),
+      'creationDate': creationDate.toIso8601String(), // Storing the date as a string
       'sharedCode': sharedCode,
-      'source': source
+      'source': source,
     };
   }
 
-  // Convert Map to Puzzle object
-  static Puzzle fromMap(Map<String, dynamic> map) {
+  // Convert a Map into a Puzzle instance
+  factory Puzzle.fromMap(Map<String, dynamic> map) {
     return Puzzle(
       id: map['id'],
-      grid: stringToGrid(map['grid']),
-      currentState: stringToGrid(map['currentState']),
+      grid: jsonDecode(map['grid']),
+      currentState: jsonDecode(map['currentState']),
       name: map['name'],
       status: map['status'],
       creationDate: DateTime.parse(map['creationDate']),
@@ -56,15 +48,4 @@ class Puzzle {
       source: map['source'],
     );
   }
-
-  // Helper function to convert a 2D list grid to a string representation
-  String gridToString(List<List<int>> grid) {
-    return grid.map((row) => row.join(",")).join(";");
-  }
-
-  // Helper function to convert the string representation back to a 2D list grid
-  static List<List<int>> stringToGrid(String gridString) {
-    return gridString.split(";").map((rowString) => rowString.split(",").map((cell) => int.parse(cell)).toList()).toList();
-  }
-  
 }
