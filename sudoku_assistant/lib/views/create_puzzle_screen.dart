@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:sudoku_assistant/widgets/number_button_bar.dart';
 import 'package:sudoku_assistant/widgets/sudoku_grid.dart';
 import 'package:sudoku_assistant/controllers/puzzle_controller.dart';
-
+import 'package:sudoku_assistant/widgets/memo_buttun_bar.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:sudoku_assistant/widgets/save_button.dart';
 class CreatePuzzleScreen extends StatefulWidget {
   const CreatePuzzleScreen({super.key});
 
@@ -16,15 +18,7 @@ class _CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
   void _handleCellTap(int x, int y) {
     _puzzleController.handleCellTap(x, y);
     setState(() {}); // Refresh the UI with the updated grid state
-    
-    // if (_puzzleController.selectedNumber != null) {
-    //   // Apply the selected number to the tapped cell
-    //   _puzzleController.handleNumberInput(x, y);
-    //   setState(() {}); // Refresh the UI with the updated grid state
-    // }else {
-    //   // Open a number selection interface
-    //   _puzzleController.handleCellTap(x, y);
-    // }
+
   }
 
   void _handleNumberTap(int number) {
@@ -46,11 +40,16 @@ class _CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
 
   void _handleNumberLock(bool isLocked) {
     // Lock or unlock the selected number
-    if (!isLocked) {
-      _puzzleController.selectedNumber = null;
-    }
-    _puzzleController.isNumberLocked = isLocked;
+    _puzzleController.setNumberLockState(isLocked);
+    setState(() {});
+  }
+  void _handleReset() {
+    _puzzleController.handleReset();
+    setState(() {});
+  }
 
+  void _handleCellDelete() {
+    _puzzleController.handleCellDelete();
     setState(() {});
   }
 
@@ -61,30 +60,41 @@ class _CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
     double gridMarginTop = MediaQuery.of(context).size.height * 0.01; // 1% of the screen height
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Sudoku Puzzle'),
+        title: Text(AppLocalizations.of(context)!.generate_sudoku),
       ),
-    body: Column(
-      children: [
-        SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
-        Expanded(
-          child: Center( // Center is added to center the Container
-            child: Container(
-              width: gridWidth, // Set the width of the Container
-              child: SudokuGrid(
-                onCellTap: _handleCellTap,
-                grid: _puzzleController.grid,
-                invalidCells: _puzzleController.invalidCells,
-                highlightedCells: _puzzleController.highlightedCells,
-                selectedcell: _puzzleController.selectedcell,
+      body: Column(
+        children: [
+          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
+          Expanded(
+            child: Center( // Center is added to center the Container
+              child: SizedBox(
+                width: gridWidth, // Set the width of the Container
+                child: SudokuGrid(
+                  onCellTap: _handleCellTap,
+                  grid: _puzzleController.grid,
+                  invalidCells: _puzzleController.invalidCells,
+                  highlightedCells: _puzzleController.highlightedCells,
+                  selectedcell: _puzzleController.selectedcell,
+                  memoGrid: _puzzleController.memoGrid,
+                ),
               ),
             ),
           ),
-        ),
+          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
+          MemoButtonBar(
+            onCellDelete: _handleCellDelete,
+          ),
+          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
           NumberButtonBar(
             onNumberTap: _handleNumberTap,
             onNumberLongPress: _handleNumberLongPress,
             onNumberLock: _handleNumberLock,
           ),
+          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
+          SaveButtonBar(
+            onReset: _handleReset,
+          ),
+          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
           // Add Preview and Save button implementations here
         ],
       ),

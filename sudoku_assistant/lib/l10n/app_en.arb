@@ -1,0 +1,10 @@
+{
+  "@@locale": "en",
+  "memo": "Memo",
+  "erase": "Erase",
+  "undo": "Undo",
+  "reset": "Reset",
+  "save": "Save",
+  "generate_sudoku": "Generate Sudoku Puzzle",
+  "appTitle": "Sudoku Assistant"
+}

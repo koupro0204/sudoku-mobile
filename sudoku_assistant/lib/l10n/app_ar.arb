@@ -1,0 +1,10 @@
+{
+  "@@locale": "ar",
+  "memo": "مذكرة",
+  "erase": "مسح",
+  "undo": "تراجع",
+  "reset": "إعادة تعيين",
+  "save": "حفظ",
+  "generate_sudoku": "توليد لغز السودوكو",
+  "appTitle": "Sudoku Assistant"
+}

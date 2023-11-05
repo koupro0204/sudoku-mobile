@@ -1,0 +1,14 @@
+{
+  "@@locale": "ja",
+  "memo": "メモ",
+  "erase": "消す",
+  "undo": "元に戻す",
+  "reset": "リセット",
+  "save": "保存",
+  "generate_sudoku": "ナンプレ問題生成",
+  "appTitle": "Sudoku Assistant"
+}
+
+
+
+

@@ -57,11 +57,20 @@ class _NumberButtonBarState extends State<NumberButtonBar> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _selectedNumber == index + 1 && _isNumberLocked
                   ? Colors.blueAccent
-                  : null, // Highlight the selected number if locked
+                  : Colors.lightBlueAccent[100], // Highlight the selected number if locked
             ),
             onPressed: () => _handleNumberTap(index + 1),
             onLongPress: () => _handleNumberLongPress(index + 1),
-            child: Text('${index + 1}'),
+            child:  Text(
+              '${index + 1}',
+              style: TextStyle(
+                fontSize: 50,
+                fontWeight: FontWeight.bold,
+                color: _selectedNumber == index + 1 && _isNumberLocked
+                    ? Colors.white
+                    : Colors.black,
+              ),
+            ),
           ),
         );
       }),

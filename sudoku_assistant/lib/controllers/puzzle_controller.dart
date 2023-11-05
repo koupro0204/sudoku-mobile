@@ -1,5 +1,6 @@
 class PuzzleController {
   List<List<int>> grid = List.generate(9, (_) => List.filled(9, 0));
+  List<List<List<int>>> memoGrid = List.generate(9, (_) => List.generate(9, (_) => <int>[]));
   List<List<bool>> invalidCells = List.generate(9, (_) => List.filled(9, false));
   int? selectedNumber; // For Fixed Number Mode
   bool isNumberLocked = false; // To track if a number is locked
@@ -16,6 +17,11 @@ class PuzzleController {
   // Call this method when the locked state of a number changes
   void setNumberLockState(bool locked) {
     isNumberLocked = locked;
+    if (!locked) {
+      if (selectedRow != null && selectedCol != null) {
+        handleCellTap(selectedRow!, selectedCol!);
+      }
+    }
   }
 
   void handleFixedMode(int number){
@@ -50,6 +56,30 @@ class PuzzleController {
     validateGrid();
 
   }
+  // Called when the reset button is tapped
+  void handleReset(){
+    grid = List.generate(9, (_) => List.filled(9, 0));
+    invalidCells = List.generate(9, (_) => List.filled(9, false));
+    if (selectedNumber != null) {}
+    selectedRow = null;
+    selectedCol = null;
+    highlightedRow = null;
+    highlightedCol = null;
+    _resetHighlightsAndSelectedcell();
+  }
+
+  // Called when the delete button is tapped
+  void handleCellDelete() {
+    if (selectedRow != null && selectedCol != null) {
+      grid[selectedRow!][selectedCol!] = 0;
+      validateGrid();
+    };
+  }
+
+  /*
+    ここからvalidateのコード
+    パズルの入力に対して、行、列、ボックスの各セルに重複する数字がないかをチェックする
+  */
 
   // Checks the entire grid for any conflicts
   void validateGrid() {
@@ -129,7 +159,13 @@ class PuzzleController {
     }
   }
 
+  /* ここまでvalidateのコード */
+  /* 
+    ここからhightlightのコード
+    セルをハイライトするためのコード
+  */
 
+  // Reset all highlights and selected cells
   void _resetHighlightsAndSelectedcell() {
     for (var i = 0; i < 9; i++) {
       for (var j = 0; j < 9; j++) {
@@ -138,19 +174,19 @@ class PuzzleController {
       }
     }
   }
-
+  // Highlight a row
   void _highlightRow(int x) {
     for (int col = 0; col < 9; col++) {
       highlightedCells[x][col] = true;
     }
   }
-
+  // Highlight a column
   void _highlightColumn(int y) {
     for (int row = 0; row < 9; row++) {
       highlightedCells[row][y] = true;
     }
   }
-
+  // Highlight a 3x3 box
   void _highlightBox(int x, int y) {
     int boxStartRow = x - x % 3;
     int boxStartCol = y - y % 3;
@@ -160,7 +196,7 @@ class PuzzleController {
       }
     }
   }
-
+  // Highlight cells with the same number
   void _highlightSameNumbers(int number) {
     if (number == 0) return; // Don't highlight if the cell is empty
     for (int row = 0; row < 9; row++) {
