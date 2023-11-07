@@ -3,7 +3,7 @@ import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/views/create_puzzle_screen.dart';
 // import 'package:sudoku_assistant/widgets/puzzle_thumbnail.dart'; 
-
+import 'package:sudoku_assistant/widgets/preview.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -23,17 +23,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadLastPlayedPuzzle() async {
     // Assuming you have a method in LocalStorageService to get the last played puzzle
     var puzzles = await LocalStorageService().getPuzzles();
+    print(puzzles);
     if (puzzles.isNotEmpty) {
       // Sorting puzzles by last played date to get the most recent one
       puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
       setState(() {
-        lastPlayedPuzzle = puzzles.first;
+        lastPlayedPuzzle = Puzzle.fromMap(puzzles.first.toMap());
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLastPuzzleAvailable = lastPlayedPuzzle != null;
+    final lastPuzzleGrid = isLastPuzzleAvailable ? lastPlayedPuzzle!.currentState : [[0]];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sudoku Assistant'),
@@ -42,14 +45,20 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // if (lastPlayedPuzzle != null)
-            //   PuzzleThumbnail(puzzle: lastPlayedPuzzle!),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     // Navigate to the Create Puzzle Screen
-            //   },
-            //   child: Text('Create Puzzle'),
-            // ),
+            if (isLastPuzzleAvailable) ...[
+              Text(lastPlayedPuzzle!.name),
+              Container(
+                width: MediaQuery.of(context).size.width * 0.7, // 画面の横幅の85%に設定
+                child: PreviewGrid(grid: lastPuzzleGrid), // lastPuzzleGridは前回保存されたパズルのグリッドデータ
+              ),
+              SizedBox(height: 20), // ボタンとの間隔
+              ElevatedButton(
+                onPressed: () {
+                  // Navigate to the Create Puzzle Screen のロジックをここに記述
+                },
+                child: Text('Play This Puzzle'),
+              ),
+            ],
             ElevatedButton(
               onPressed: () {
                 // Navigate to the Create Puzzle Screen

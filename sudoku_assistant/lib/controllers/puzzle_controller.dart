@@ -1,19 +1,34 @@
+import 'package:sudoku_assistant/controllers/highlight_manager.dart';
+import 'package:sudoku_assistant/controllers/validator.dart';
+import 'package:sudoku_assistant/controllers/action_manager.dart';
+
 class PuzzleController {
   List<List<int>> grid = List.generate(9, (_) => List.filled(9, 0));
-  List<List<List<int>>> memoGrid = List.generate(9, (_) => List.generate(9, (_) => <int>[]));
-  List<List<bool>> invalidCells = List.generate(9, (_) => List.filled(9, false));
   int? selectedNumber; // For Fixed Number Mode
   bool isNumberLocked = false; // To track if a number is locked
   // Track the last selected cell for Direct Input Mode
   int? selectedRow;
   int? selectedCol;
-  // new properties for tracking highlights.
-  int? highlightedRow;
-  int? highlightedCol;
-  List<List<bool>> highlightedCells = List.generate(9, (_) => List.filled(9, false));
-  List<List<bool>> selectedcell = List.generate(9, (_) => List.filled(9, false));
 
-  
+  // memo
+  List<List<List<int>>> memoGrid = List.generate(9, (_) => List.generate(9, (_) => <int>[]));
+  bool isMemoMode = false; // メモがオンかオフかを追跡するフラグ
+
+  late Validator validator; // validator.dart
+  late HighlightManager highlightManager; // highlight_manager.dart
+  late ActionManager actionManager; // action_manager.dart
+
+  // PuzzleControllerのコンストラクタ
+  PuzzleController() {
+    validator = Validator(grid, memoGrid); // Validatorのインスタンスを初期化する
+    highlightManager = HighlightManager(9); // HighlightManagerのインスタンスを初期化する
+    actionManager = ActionManager(undoAction: undoAction); 
+  }
+  // PuzzleControllerからcreate_puzzle_screen.dartに返す値を定義する
+  List<List<bool>> get highlightedCells => highlightManager.getHighlightedCells();
+  List<List<bool>> get selectedCell => highlightManager.getSelectedCells();
+  List<List<bool>> get invalidCells => validator.getInvalidCells();
+
   // Call this method when the locked state of a number changes
   void setNumberLockState(bool locked) {
     isNumberLocked = locked;
@@ -23,28 +38,49 @@ class PuzzleController {
       }
     }
   }
+  // Call this method when the memo mode changes
+  void setMemoMode(bool memoMode) {
+    isMemoMode = memoMode;
+  }
 
   void handleFixedMode(int number){
-    _resetHighlightsAndSelectedcell();
-    _highlightSameNumbers(number);
+    highlightManager.resetHighlights();
+    highlightManager.highlightSameNumbers(grid, number);
   }
 
   // Called when a cell is tapped
   void handleCellTap(int x, int y) {
     selectedRow = x;
     selectedCol = y;
+    List<List<List<int>>> currentMemoGridCopy = memoGrid.map((row) => row.map((memo) => List<int>.from(memo)).toList()).toList();
+
     if (isNumberLocked && selectedNumber != null) {
+      actionManager.addAction(PuzzleAction(
+        x: x,
+        y: y,
+        oldValue: grid[x][y],
+        memoGrid: currentMemoGridCopy,
+      ));
       // In Fixed Number Mode, the selected number is already known
-      grid[x][y] = selectedNumber!;
-      validateGrid();
+      if (isMemoMode){
+        if (memoGrid[x][y].contains(selectedNumber)){
+          memoGrid[x][y].remove(selectedNumber);
+        } else{
+          memoGrid[x][y].add(selectedNumber!);
+          memoGrid[x][y].sort(); // sort numbers
+        }
+      } else{
+        memoGrid[x][y] = <int>[]; // Clear memo
+        grid[x][y] = selectedNumber!;
+        // 新しい数字を入力した後に関連するセルからメモを削除
+        validator.removeMemoFromRelatedCells(x, y, selectedNumber!);
+
+        highlightManager.highlightSameNumbers(grid, selectedNumber!);
+        validator.validate();
+      }
     } else {
       // In Direct Input Mode, you would open a number selection interface
-      _resetHighlightsAndSelectedcell(); // Reset all highlights before setting new ones
-      selectedcell[x][y] = true; // Highlight the selected cell
-      _highlightRow(x);
-      _highlightColumn(y);
-      _highlightBox(x, y);
-      _highlightSameNumbers(grid[x][y]);
+      highlightManager.highlightAllRelatedCells(x, y, grid);
     }
   }
 
@@ -52,160 +88,86 @@ class PuzzleController {
   void handleNumberInput(int x, int y) {
     selectedRow = x;
     selectedCol = y;
-    grid[x][y] = selectedNumber ?? grid[x][y]; // Only change if a number is selected
-    validateGrid();
-
+    List<List<List<int>>> currentMemoGridCopy = memoGrid.map((row) => row.map((memo) => List<int>.from(memo)).toList()).toList();
+    actionManager.addAction(PuzzleAction(
+      x: x,
+      y: y,
+      oldValue: grid[x][y],
+      memoGrid: currentMemoGridCopy,
+    ));
+    if (isMemoMode){
+      if (memoGrid[x][y].contains(selectedNumber)){
+        memoGrid[x][y].remove(selectedNumber);
+      } else{
+        memoGrid[x][y].add(selectedNumber!);
+        memoGrid[x][y].sort(); // sort numbers
+      }
+    } else{
+      memoGrid[x][y] = <int>[]; // Clear memo
+      grid[x][y] = selectedNumber!;
+      // 新しい数字を入力した後に関連するセルからメモを削除
+      validator.removeMemoFromRelatedCells(x, y, selectedNumber!);
+      validator.validate();
+    }
   }
   // Called when the reset button is tapped
   void handleReset(){
+    actionManager.addAction(PuzzleAction(
+      grid: grid,
+      memoGrid: memoGrid,
+    ));
     grid = List.generate(9, (_) => List.filled(9, 0));
-    invalidCells = List.generate(9, (_) => List.filled(9, false));
+    validator.updateGrid(grid, memoGrid);
+    memoGrid = List.generate(9, (_) => List.generate(9, (_) => <int>[]));
     if (selectedNumber != null) {}
-    selectedRow = null;
-    selectedCol = null;
-    highlightedRow = null;
-    highlightedCol = null;
-    _resetHighlightsAndSelectedcell();
+    selectedRow = 0;
+    selectedCol = 0;
+    highlightManager.resetHighlights();
   }
 
   // Called when the delete button is tapped
   void handleCellDelete() {
     if (selectedRow != null && selectedCol != null) {
+      actionManager.addAction(PuzzleAction(
+        x: selectedRow,
+        y: selectedCol,
+        oldValue: grid[selectedRow!][selectedCol!],
+        memoList: memoGrid[selectedRow!][selectedCol!],
+      ));
       grid[selectedRow!][selectedCol!] = 0;
-      validateGrid();
-    };
+      memoGrid[selectedRow!][selectedCol!] = <int>[]; // Clear memo
+      validator.validate();
+    }
   }
+  // 状態を元に戻すメソッド
+  void undoAction(PuzzleAction action) {
+    // セルの値を復元する場合
+    if (action.x != null && action.y != null && action.oldValue != null) {
+      grid[action.x!][action.y!] = action.oldValue!;
+      memoGrid[action.x!][action.y!] = <int>[]; // メモをクリア
+    }
+    // メモリストを復元する場合
+    else if (action.x != null && action.y != null && action.memoList != null) {
+      memoGrid[action.x!][action.y!] = List.from(action.memoList!);
+      grid[action.x!][action.y!] = 0; // セルの値をクリア
+    }
+    
+    // 全体のグリッド状態を復元する場合
+    if (action.grid != null) {
+      grid = List.generate(9, (i) => List.from(action.grid![i]));
+    }
 
-  /*
-    ここからvalidateのコード
-    パズルの入力に対して、行、列、ボックスの各セルに重複する数字がないかをチェックする
-  */
-
-  // Checks the entire grid for any conflicts
-  void validateGrid() {
-    // Clear previous invalid cell marks
-    for (var i = 0; i < 9; i++) {
-      for (var j = 0; j < 9; j++) {
-        invalidCells[i][j] = false;
-      }
+    // 全体のメモグリッド状態を復元する場合
+    if (action.memoGrid != null) {
+      memoGrid = List.generate(9, (i) => List.from(action.memoGrid![i]));
     }
 
-    // Validate rows, columns, and boxes
-    for (var i = 0; i < 9; i++) {
-      validateRow(i);
-      validateColumn(i);
-      validateBox(i ~/ 3, i % 3);
+    // バリデータとハイライトマネージャを更新
+    validator.updateGrid(grid, memoGrid);
+    if (action.x != null && action.y != null) {
+      selectedRow = action.x;
+      selectedCol = action.y;
     }
-  }
-
-  // Validate a single row
-  void validateRow(int row) {
-    Map<int, List<int>> occurrences = {};
-    for (var col = 0; col < 9; col++) {
-      int number = grid[row][col];
-      if (number != 0) {
-        occurrences.putIfAbsent(number, () => []);
-        occurrences[number]!.add(col);
-      }
-    }
-    for (var indices in occurrences.values) {
-      if (indices.length > 1) {
-        for (var col in indices) {
-          invalidCells[row][col] = true;
-        }
-      }
-    }
-  }
-
-  // Validate a single column
-  void validateColumn(int col) {
-    Map<int, List<int>> occurrences = {};
-    for (var row = 0; row < 9; row++) {
-      int number = grid[row][col];
-      if (number != 0) {
-        occurrences.putIfAbsent(number, () => []);
-        occurrences[number]!.add(row);
-      }
-    }
-    for (var indices in occurrences.values) {
-      if (indices.length > 1) {
-        for (var row in indices) {
-          invalidCells[row][col] = true;
-        }
-      }
-    }
-  }
-
-  // Validate a 3x3 box
-  void validateBox(int boxRow, int boxCol) {
-    Map<int, List<List<int>>> occurrences = {};
-    for (var row = 0; row < 3; row++) {
-      for (var col = 0; col < 3; col++) {
-        int actualRow = 3 * boxRow + row;
-        int actualCol = 3 * boxCol + col;
-        int number = grid[actualRow][actualCol];
-        if (number != 0) {
-          occurrences.putIfAbsent(number, () => []);
-          occurrences[number]!.add([actualRow, actualCol]);
-        }
-      }
-    }
-    for (var cells in occurrences.values) {
-      if (cells.length > 1) {
-        for (var cell in cells) {
-          invalidCells[cell[0]][cell[1]] = true;
-        }
-      }
-    }
-  }
-
-  /* ここまでvalidateのコード */
-  /* 
-    ここからhightlightのコード
-    セルをハイライトするためのコード
-  */
-
-  // Reset all highlights and selected cells
-  void _resetHighlightsAndSelectedcell() {
-    for (var i = 0; i < 9; i++) {
-      for (var j = 0; j < 9; j++) {
-        highlightedCells[i][j] = false;
-        selectedcell[i][j] = false;
-      }
-    }
-  }
-  // Highlight a row
-  void _highlightRow(int x) {
-    for (int col = 0; col < 9; col++) {
-      highlightedCells[x][col] = true;
-    }
-  }
-  // Highlight a column
-  void _highlightColumn(int y) {
-    for (int row = 0; row < 9; row++) {
-      highlightedCells[row][y] = true;
-    }
-  }
-  // Highlight a 3x3 box
-  void _highlightBox(int x, int y) {
-    int boxStartRow = x - x % 3;
-    int boxStartCol = y - y % 3;
-    for (int row = boxStartRow; row < boxStartRow + 3; row++) {
-      for (int col = boxStartCol; col < boxStartCol + 3; col++) {
-        highlightedCells[row][col] = true;
-      }
-    }
-  }
-  // Highlight cells with the same number
-  void _highlightSameNumbers(int number) {
-    if (number == 0) return; // Don't highlight if the cell is empty
-    for (int row = 0; row < 9; row++) {
-      for (int col = 0; col < 9; col++) {
-        if (grid[row][col] == number) {
-          // highlightedCells[row][col] = true;
-          selectedcell[row][col] = true;
-        }
-      }
-    }
+    highlightManager.highlightAllRelatedCells(selectedRow!, selectedCol!, grid);
   }
 }

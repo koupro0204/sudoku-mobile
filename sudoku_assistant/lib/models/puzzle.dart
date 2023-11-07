@@ -5,10 +5,10 @@ class Puzzle {
   final List<List<int>> grid;
   final List<List<int>> currentState;
   final String name;
-  final String status;
+  final String status; // 共有されているか、されていないか // shared or not
   final DateTime creationDate;
   final String? sharedCode; // Nullable, because a puzzle might not be shared
-  final String source;
+  final String source; // 自分で作成したか、共有からか // created or shared
 
   Puzzle({
     this.id,
@@ -39,8 +39,14 @@ class Puzzle {
   factory Puzzle.fromMap(Map<String, dynamic> map) {
     return Puzzle(
       id: map['id'],
-      grid: jsonDecode(map['grid']),
-      currentState: jsonDecode(map['currentState']),
+      grid: (jsonDecode(map['grid']) as List<dynamic>)
+          .map((dynamic row) => row as List)
+          .map((row) => row.map((cell) => cell as int).toList())
+          .toList(),
+      currentState: (jsonDecode(map['currentState']) as List<dynamic>)
+          .map((dynamic row) => row as List)
+          .map((row) => row.map((cell) => cell as int).toList())
+          .toList(),
       name: map['name'],
       status: map['status'],
       creationDate: DateTime.parse(map['creationDate']),
@@ -48,4 +54,5 @@ class Puzzle {
       source: map['source'],
     );
   }
+
 }

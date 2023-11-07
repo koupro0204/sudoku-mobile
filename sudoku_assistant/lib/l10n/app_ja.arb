@@ -6,7 +6,10 @@
   "reset": "リセット",
   "save": "保存",
   "generate_sudoku": "ナンプレ問題生成",
-  "appTitle": "Sudoku Assistant"
+  "appTitle": "Sudoku Assistant",
+  "name": "パズルの名前",
+  "cancel": "キャンセル",
+  "preview": "パズルのプレビュー"
 }
 
 

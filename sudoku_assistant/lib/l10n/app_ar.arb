@@ -6,5 +6,8 @@
   "reset": "إعادة تعيين",
   "save": "حفظ",
   "generate_sudoku": "توليد لغز السودوكو",
-  "appTitle": "Sudoku Assistant"
+  "appTitle": "Sudoku Assistant",
+  "name": "اسم اللغز",
+  "preview": "معاينة",
+  "cancel": "يلغي"
 }

@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class MemoButtonBar extends StatefulWidget {
   final Function() onCellDelete;
+  final Function(bool) onMemoMode; // Callback for memo mode
+  final Function() onUndo; // Callback for clearing the memo
   const MemoButtonBar({super.key,
     required this.onCellDelete,
+    required this.onMemoMode,
+    required this.onUndo,
   });
 
   @override
@@ -11,7 +15,15 @@ class MemoButtonBar extends StatefulWidget {
 }
 
 class _MemoButtonBarState extends State<MemoButtonBar> {
-  bool isMemoOn = false; // メモがオンかオフかを追跡するフラグ
+  bool isMemoMode = false; // メモがオンかオフかを追跡するフラグ
+  bool isExistHistory = false; // 履歴があるかどうかを追跡するフラグ
+
+
+  void _handleMemoTap() {
+    isMemoMode = !isMemoMode; // メモのオン/オフを切り替える
+    widget.onMemoMode(isMemoMode);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +36,10 @@ class _MemoButtonBarState extends State<MemoButtonBar> {
           children: [
             IconButton(
               icon: Icon(
-                isMemoOn ? Icons.edit : Icons.edit_off, // メモがオンのときはeditアイコン、オフのときはedit_offアイコン
-                color: isMemoOn ? Colors.blue : null, // メモがオンのときは青色
+                isMemoMode ? Icons.edit : Icons.edit_off, // メモがオンのときはeditアイコン、オフのときはedit_offアイコン
+                color: isMemoMode ? Colors.blue : null, // メモがオンのときは青色
               ),
-              onPressed: () {
-                setState(() {
-                  isMemoOn = !isMemoOn; // メモのオン/オフを切り替える
-                });
-              },
+              onPressed: () => _handleMemoTap(),
             ),
             Text(AppLocalizations.of(context)!.memo)
           ],
@@ -58,6 +66,7 @@ class _MemoButtonBarState extends State<MemoButtonBar> {
               icon: Icon(Icons.undo),
               onPressed: () {
                 // 元に戻す機能をここに書く
+                widget.onUndo();
               },
             ),
             Text(AppLocalizations.of(context)!.undo)

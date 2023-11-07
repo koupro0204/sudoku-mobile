@@ -36,7 +36,7 @@ class SudokuGrid extends StatelessWidget {
         final List<int> memo = memoGrid[x][y];
         bool hasMemo = memo.isNotEmpty;
 
-
+        
         // Update the color based on the highlighting
         Color? backgroundColor;
         if (isHighlighted) {
@@ -61,9 +61,9 @@ class SudokuGrid extends StatelessWidget {
 
         // メモのスタイルを定義する
         final TextStyle memoStyle = TextStyle(
-          fontSize: 6,
+          fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: Colors.grey,
+          color: Colors.black,
         );
 
         // メインの数字のスタイルを定義する

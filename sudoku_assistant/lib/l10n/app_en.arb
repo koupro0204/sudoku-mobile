@@ -6,5 +6,8 @@
   "reset": "Reset",
   "save": "Save",
   "generate_sudoku": "Generate Sudoku Puzzle",
-  "appTitle": "Sudoku Assistant"
+  "appTitle": "Sudoku Assistant",
+  "name": "puzzle name",
+  "preview": "preview",
+  "cancel": "cancel"
 }
