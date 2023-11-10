@@ -9,7 +9,11 @@
   "appTitle": "Sudoku Assistant",
   "name": "パズルの名前",
   "cancel": "キャンセル",
-  "preview": "パズルのプレビュー"
+  "preview": "パズルのプレビュー",
+  "create_top":"問題を作成する",
+  "library_top":"問題一覧",
+  "share_top":"共有コードを入力する",
+  "lastPlay_top":"プレイする"
 }
 
 

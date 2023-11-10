@@ -19,17 +19,17 @@ class SudokuAssistantApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      localizationsDelegates: [
+      localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: [
-        const Locale('ja', ''), //日本語
-        const Locale('en', ''), //英語
-        const Locale('zh', ''), //中国語
-        const Locale('ar', ''), //アラビア語
+      supportedLocales: const [
+        Locale('ja', ''), //日本語
+        Locale('en', ''), //英語
+        Locale('zh', ''), //中国語
+        Locale('ar', ''), //アラビア語
       ],
       title: 'Sudoku Assistant',
       theme: ThemeData(

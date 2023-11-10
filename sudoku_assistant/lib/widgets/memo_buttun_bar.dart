@@ -11,10 +11,10 @@ class MemoButtonBar extends StatefulWidget {
   });
 
   @override
-  _MemoButtonBarState createState() => _MemoButtonBarState();
+  MemoButtonBarState createState() => MemoButtonBarState();
 }
 
-class _MemoButtonBarState extends State<MemoButtonBar> {
+class MemoButtonBarState extends State<MemoButtonBar> {
   bool isMemoMode = false; // メモがオンかオフかを追跡するフラグ
   bool isExistHistory = false; // 履歴があるかどうかを追跡するフラグ
 
@@ -49,7 +49,7 @@ class _MemoButtonBarState extends State<MemoButtonBar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
               onPressed: () {
                 // 消しゴムの機能をここに書く
                 widget.onCellDelete();
@@ -63,7 +63,7 @@ class _MemoButtonBarState extends State<MemoButtonBar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.undo),
+              icon: const Icon(Icons.undo),
               onPressed: () {
                 // 元に戻す機能をここに書く
                 widget.onUndo();

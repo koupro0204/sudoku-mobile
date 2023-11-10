@@ -1,0 +1,2 @@
+// homeで単一のコードを入力するためのwidgetを作成する
+// share_code_screenで複数のコードを入力するためのwidgetを作成する

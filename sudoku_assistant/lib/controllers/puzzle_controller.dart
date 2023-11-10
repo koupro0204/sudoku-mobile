@@ -69,6 +69,7 @@ class PuzzleController {
           memoGrid[x][y].add(selectedNumber!);
           memoGrid[x][y].sort(); // sort numbers
         }
+        grid[x][y] = 0; // Clear cell value
       } else{
         memoGrid[x][y] = <int>[]; // Clear memo
         grid[x][y] = selectedNumber!;
@@ -102,6 +103,7 @@ class PuzzleController {
         memoGrid[x][y].add(selectedNumber!);
         memoGrid[x][y].sort(); // sort numbers
       }
+      grid[x][y] = 0; // Clear cell value
     } else{
       memoGrid[x][y] = <int>[]; // Clear memo
       grid[x][y] = selectedNumber!;
@@ -168,6 +170,11 @@ class PuzzleController {
       selectedRow = action.x;
       selectedCol = action.y;
     }
-    highlightManager.highlightAllRelatedCells(selectedRow!, selectedCol!, grid);
+    if (isNumberLocked) {
+      highlightManager.resetHighlights();
+      highlightManager.highlightSameNumbers(grid, selectedNumber!);
+    } else {
+      highlightManager.highlightAllRelatedCells(selectedRow!, selectedCol!, grid);
+    }
   }
 }

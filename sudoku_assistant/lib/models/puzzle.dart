@@ -1,14 +1,23 @@
 import 'dart:convert';
 
+class StatusNumber {
+  static const none = 0;
+  static const completed = 1;
+  static const shared = 2;
+}
+class SourceNumber {
+  static const created = 0;
+  static const share = 1;
+}
 class Puzzle {
   final int? id; // Nullable, because it will be null when we create a new puzzle
   final List<List<int>> grid;
   final List<List<int>> currentState;
   final String name;
-  final String status; // 共有されているか、されていないか // shared or not
+  final int status; // 共有されているか、されていないか // shared or none or completed
   final DateTime creationDate;
   final String? sharedCode; // Nullable, because a puzzle might not be shared
-  final String source; // 自分で作成したか、共有からか // created or shared
+  final int source; // 自分で作成したか、共有からか // created or shared
 
   Puzzle({
     this.id,

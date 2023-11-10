@@ -12,10 +12,10 @@ class NumberButtonBar extends StatefulWidget {
   });
 
   @override
-  _NumberButtonBarState createState() => _NumberButtonBarState();
+  NumberButtonBarState createState() => NumberButtonBarState();
 }
 
-class _NumberButtonBarState extends State<NumberButtonBar> {
+class NumberButtonBarState extends State<NumberButtonBar> {
   int? _selectedNumber;
   bool _isNumberLocked = false; // To track if a number is locked
 

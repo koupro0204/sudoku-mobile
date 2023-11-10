@@ -41,10 +41,10 @@ class LocalStorageService {
         grid TEXT,
         currentState TEXT,
         name TEXT,
-        status TEXT,
+        status INTEGER,
         creationDate TEXT,
         sharedCode TEXT,
-        source TEXT
+        source INTEGER
       )
     ''');
   }

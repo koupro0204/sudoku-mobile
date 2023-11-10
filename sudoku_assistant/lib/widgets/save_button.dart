@@ -9,10 +9,10 @@ class SaveButtonBar extends StatefulWidget{
     required this.onPreview,
   });
   @override
-  _SaveButtonBarState createState() => _SaveButtonBarState();
+  SaveButtonBarState createState() => SaveButtonBarState();
 }
 
-class _SaveButtonBarState extends State<SaveButtonBar> {
+class SaveButtonBarState extends State<SaveButtonBar> {
   void _handleReset() {
     widget.onReset();
     setState(() {});
@@ -35,7 +35,7 @@ class _SaveButtonBarState extends State<SaveButtonBar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh),
               onPressed: () {
                 // リセットの機能をここに書く
                 _handleReset();
@@ -49,7 +49,7 @@ class _SaveButtonBarState extends State<SaveButtonBar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.save),
+              icon: const Icon(Icons.save),
               onPressed: () {
                 // 保存の機能をここに書く
                 _handlePreview();

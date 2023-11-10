@@ -36,7 +36,6 @@ class SudokuGrid extends StatelessWidget {
         final List<int> memo = memoGrid[x][y];
         bool hasMemo = memo.isNotEmpty;
 
-        
         // Update the color based on the highlighting
         Color? backgroundColor;
         if (isHighlighted) {
@@ -50,8 +49,8 @@ class SudokuGrid extends StatelessWidget {
         }
         
         // 境界線の太さを定義する
-        final BorderSide normalSide = BorderSide(color: Colors.grey, width: 0.5);
-        final BorderSide thickSide = BorderSide(color: Colors.black, width: 2);
+        const BorderSide normalSide = BorderSide(color: Colors.grey, width: 0.5);
+        const BorderSide thickSide = BorderSide(color: Colors.black, width: 2);
 
         // 3x3ボックスの境界かどうかをチェック
         final bool isRightSide = y == 8; // 最後の列
@@ -60,7 +59,7 @@ class SudokuGrid extends StatelessWidget {
         final bool isTopSide = x % 3 == 0 || x == 0; // 上のボックスの境界または最初の行
 
         // メモのスタイルを定義する
-        final TextStyle memoStyle = TextStyle(
+        const TextStyle memoStyle = TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
           color: Colors.black,
@@ -85,10 +84,9 @@ class SudokuGrid extends StatelessWidget {
               ),
             ),
             child: Center(
-              child: hasMemo 
-                ? Container(
+              child: hasMemo
                   // 9等分されたグリッドを作成するための設定
-                  child: GridView.count(
+                ? GridView.count(
                     crossAxisCount: 3, // 3列
                     children: List.generate(9, (index) {
                       return Center(
@@ -98,8 +96,7 @@ class SudokuGrid extends StatelessWidget {
                         ),
                       );
                     }),
-                  ),
-                )
+                  )
                 : Text(
                     number != 0 ? number.toString() : '',
                     style: mainNumberStyle,

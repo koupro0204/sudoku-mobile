@@ -8,7 +8,7 @@ class Validator {
 
   Validator(this.grid,this.memoGrid)
       : gridSize = grid.length,
-        boxSize = (grid.length / 3).toInt(),
+        boxSize = (grid.length ~/ 3).toInt(),
         invalidCells = List.generate(grid.length, (_) => List.filled(grid.length, false));
 
   // グリッド全体の検証を行う

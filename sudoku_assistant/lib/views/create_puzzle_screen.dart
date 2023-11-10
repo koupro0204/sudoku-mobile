@@ -14,10 +14,10 @@ class CreatePuzzleScreen extends StatefulWidget {
   const CreatePuzzleScreen({super.key});
 
   @override
-  _CreatePuzzleScreenState createState() => _CreatePuzzleScreenState();
+  CreatePuzzleScreenState createState() => CreatePuzzleScreenState();
 }
 
-class _CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
+class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
   final PuzzleController _puzzleController = PuzzleController();
   // final ActionManager _actionManager = ActionManager();
   @override
@@ -25,6 +25,8 @@ class _CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
     super.initState();
     _puzzleController.selectedRow=0;
     _puzzleController.selectedCol=0;
+    List<List<int>> grid = List.generate(9, (_) => List.filled(9, 0));
+    _puzzleController.highlightManager.highlightAllRelatedCells(0, 0, grid);
   }
   void _handleCellTap(int x, int y) {
     _puzzleController.handleCellTap(x, y);
@@ -39,9 +41,9 @@ class _CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
       name: name,
       grid: _puzzleController.grid,
       creationDate: DateTime.now(),
-      status: "not",
+      status: StatusNumber.none,
       currentState: _puzzleController.grid,
-      source: "created",
+      source: SourceNumber.created,
     );
 
     // insertPuzzleメソッドを呼び出してパズルをデータベースに保存
@@ -102,19 +104,20 @@ class _CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.preview),
           content: SingleChildScrollView(
-            child: Container(
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // 内容に合わせてサイズを最小限にする
-                children: <Widget>[
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.name, // 入力欄のラベル
-                    ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // 内容に合わせてサイズを最小限にする
+              children: <Widget>[
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.name, // 入力欄のラベル
                   ),
-                  PreviewGrid(grid: _puzzleController.grid), // プレビューグリッドを表示
-                ],
-              ),
+                ),
+                PreviewGrid(
+                  grid: _puzzleController.grid,
+                  currentState: _puzzleController.grid,
+                  ), // プレビューグリッドを表示
+              ],
             ),
           ),
           actions: <Widget>[
