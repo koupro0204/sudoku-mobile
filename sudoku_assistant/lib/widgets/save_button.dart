@@ -4,9 +4,11 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class SaveButtonBar extends StatefulWidget{
   final Function() onReset;
   final Function() onPreview;
+  final bool isInvalid;
   const SaveButtonBar({super.key, 
     required this.onReset,
     required this.onPreview,
+    required this.isInvalid,
   });
   @override
   SaveButtonBarState createState() => SaveButtonBarState();
@@ -25,6 +27,25 @@ class SaveButtonBarState extends State<SaveButtonBar> {
 
   }
 
+  void _showInvalidPreviewDialog(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('無効な操作'),
+            content: Text('エラーが存在するため、保存できません。'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // ダイアログを閉じる
+                },
+              ),
+            ],
+          );
+        },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -49,10 +70,14 @@ class SaveButtonBarState extends State<SaveButtonBar> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
+
               icon: const Icon(Icons.save),
               onPressed: () {
-                // 保存の機能をここに書く
-                _handlePreview();
+                if(widget.isInvalid){
+                  _showInvalidPreviewDialog(context);
+                }else{
+                  _handlePreview();
+                }
               },
             ),
             Text(AppLocalizations.of(context)!.save)

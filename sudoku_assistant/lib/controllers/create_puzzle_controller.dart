@@ -1,11 +1,8 @@
 import 'package:sudoku_assistant/controllers/highlight_manager.dart';
 import 'package:sudoku_assistant/controllers/validator.dart';
 import 'package:sudoku_assistant/controllers/action_manager.dart';
-import 'package:sudoku_assistant/controllers/inspect_completed.dart';
 
-class PuzzleController {
-  // grid --> currentGrid
-  List<List<int>> initialGrid= List.generate(9, (_) => List.filled(9, 0));
+class CreatePuzzleController {
   List<List<int>> grid = List.generate(9, (_) => List.filled(9, 0));
   int? selectedNumber; // For Fixed Number Mode
   bool isNumberLocked = false; // To track if a number is locked
@@ -20,21 +17,17 @@ class PuzzleController {
   late Validator validator; // validator.dart
   late HighlightManager highlightManager; // highlight_manager.dart
   late ActionManager actionManager; // action_manager.dart
-  late Inspect inspect; // inspect_completed.dart
 
   // PuzzleControllerのコンストラクタ
-  PuzzleController() {
+  CreatePuzzleController() {
     validator = Validator(grid, memoGrid); // Validatorのインスタンスを初期化する
     highlightManager = HighlightManager(9); // HighlightManagerのインスタンスを初期化する
     actionManager = ActionManager(undoAction: undoAction); 
-    inspect = Inspect(grid, validator.invalidCells);
   }
   // PuzzleControllerからcreate_puzzle_screen.dartに返す値を定義する
   List<List<bool>> get highlightedCells => highlightManager.getHighlightedCells();
   List<List<bool>> get selectedCell => highlightManager.getSelectedCells();
   List<List<bool>> get invalidCells => validator.getInvalidCells();
-  // 完了したかどうかを返す
-  bool get isCompleted => inspect.inspectCompelted();
 
   bool maxNumber(int number) {
     Map<int, int> numberCount = {};
@@ -53,7 +46,6 @@ class PuzzleController {
   }
   // Call this method when the locked state of a number changes
   void setNumberLockState(bool locked) {
-    
     isNumberLocked = locked;
     if (!locked) {
       if (selectedRow != null && selectedCol != null) {
@@ -76,11 +68,8 @@ class PuzzleController {
     selectedRow = x;
     selectedCol = y;
     List<List<List<int>>> currentMemoGridCopy = memoGrid.map((row) => row.map((memo) => List<int>.from(memo)).toList()).toList();
+
     if (isNumberLocked && selectedNumber != null) {
-      // initialGridに値が入っているセルをタップした場合は何もしない
-      if (initialGrid[x][y] != 0) {
-        return;
-      }
       actionManager.addAction(PuzzleAction(
         x: x,
         y: y,
@@ -106,6 +95,7 @@ class PuzzleController {
         validator.validate();
         if (maxNumber(selectedNumber!)) {
           // highlightManager.highlightSameNumbers(grid, selectedNumber!);
+          // 入力された数字が9個になったらロック解除して0.0に持っていく。
           selectedNumber = null;
           isNumberLocked = false;
           highlightManager.resetHighlights();
@@ -120,10 +110,6 @@ class PuzzleController {
 
   // Called when a cell is tapped in Fixed Number Mode
   void handleNumberInput(int x, int y) {
-    // 値が入っているセルをタップした場合は何もしない
-    if (initialGrid[x][y] != 0) {
-      return;
-    }
     selectedRow = x;
     selectedCol = y;
     List<List<List<int>>> currentMemoGridCopy = memoGrid.map((row) => row.map((memo) => List<int>.from(memo)).toList()).toList();
@@ -154,6 +140,7 @@ class PuzzleController {
         highlightManager.resetHighlights();
         highlightManager.highlightAllRelatedCells(selectedRow!, selectedCol!, grid);          
       }
+
     }
   }
   // Called when the reset button is tapped

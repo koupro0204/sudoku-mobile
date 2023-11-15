@@ -20,16 +20,24 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
     _getFPuzzles();
   }
 
-  List<Puzzle> _getFPuzzles() {
+  Future<List<Puzzle>> _getFPuzzles() async {
     // LocalStorageServiceのインスタンスを取得
     LocalStorageService localStorageService = LocalStorageService();
-    // getPuzzlesメソッドを呼び出してパズルをデータベースから取得
-    localStorageService.getPuzzles().then((value) => setState(() {
-      puzzles = value;
-    }));
+
+    // getPuzzlesメソッドを非同期で呼び出し、結果を待つ
+    List<Puzzle> puzzles = await localStorageService.getPuzzles();
+
+    // puzzlesをcreationDateに基づいて新しい順に並べ替える
+    puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
+
+    // 状態を更新するためにsetStateを呼び出す必要がある場合は、ここで行う
+    setState(() {
+      this.puzzles = puzzles;
+    });
 
     return puzzles;
   }
+
   
   List<Puzzle> _getFilteredPuzzles() {
     // Implement your filter logic here based on _selectedFilter
@@ -73,7 +81,6 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
       Puzzle updatedPuzzle = Puzzle(
         id: puzzle.id,
         grid: puzzle.grid,
-        currentState: puzzle.currentState,
         name: puzzle.name,
         status: puzzle.status,
         creationDate: puzzle.creationDate,
@@ -90,6 +97,19 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
     }
   }
 
+  Future<PlayingData> _handleGetByPuzzuleId(int id) async {
+    // LocalStorageServiceのインスタンスを取得
+    LocalStorageService localStorageService = LocalStorageService();
+    // getPuzzlesメソッドを呼び出してパズルをデータベースから取得
+    var playingData = await localStorageService.getPlayingDataByPuzzleId(id);
+    if (playingData.isEmpty) {
+      return PlayingData(
+        id: null,
+        currentGrid: List.generate(9, (_) => List.filled(9, 0)),
+      );
+    }
+    return playingData.first;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +128,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
               itemBuilder: (context, index) {
                 return PuzzleEntry(
                   puzzle: filteredPuzzles[index],
+                  onGetByPuzzuleId: _handleGetByPuzzuleId,
                   onShare: _handleGetShareCode,
                   );
               },

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:sudoku_assistant/controllers/puzzle_controller.dart';
+import 'package:sudoku_assistant/controllers/create_puzzle_controller.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/widgets/number_button_bar.dart';
@@ -9,45 +9,75 @@ import 'package:sudoku_assistant/widgets/memo_buttun_bar.dart';
 import 'package:sudoku_assistant/widgets/save_button.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
 import 'package:sudoku_assistant/views/home_screen.dart';
-
+import 'package:sudoku_assistant/views/play_screen.dart';
 class CreatePuzzleScreen extends StatefulWidget {
-  const CreatePuzzleScreen({super.key});
+  final Puzzle? puzzle;
+  const CreatePuzzleScreen({
+    super.key,
+    this.puzzle,
+    });
 
   @override
   CreatePuzzleScreenState createState() => CreatePuzzleScreenState();
 }
 
 class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
-  final PuzzleController _puzzleController = PuzzleController();
+  final CreatePuzzleController _puzzleController = CreatePuzzleController();
   // final ActionManager _actionManager = ActionManager();
   @override
   void initState() {
     super.initState();
     _puzzleController.selectedRow=0;
     _puzzleController.selectedCol=0;
-    List<List<int>> grid = List.generate(9, (_) => List.filled(9, 0));
-    _puzzleController.highlightManager.highlightAllRelatedCells(0, 0, grid);
-  }
+    if (widget.puzzle != null) {
+      _puzzleController.grid = widget.puzzle!.grid;
+    }
+    _puzzleController.validator.updateGrid(_puzzleController.grid, _puzzleController.memoGrid);
+    _puzzleController.validator.validate();
+    _puzzleController.highlightManager.highlightAllRelatedCells(0, 0, _puzzleController.grid);
+    setState(() {});
+  } 
   void _handleCellTap(int x, int y) {
     _puzzleController.handleCellTap(x, y);
     setState(() {}); // Refresh the UI with the updated grid state
   }
-  void _savePuzzle(String name) async {
+  Future<Puzzle> savePuzzle(String name) async {
     // LocalStorageServiceのインスタンスを取得
     LocalStorageService localStorageService = LocalStorageService();
+    if (widget.puzzle != null) {
+      if (name=='No Name') {
+        if (widget.puzzle!.name=='No Name'){
+          name = 'No Name';
+        }else{
+          name = widget.puzzle!.name;
+        }
+      }
+      // パズルデータを作成
+      Puzzle puzzle = Puzzle(
+        id: widget.puzzle!.id,
+        name: name,
+        grid: _puzzleController.grid,
+        creationDate: DateTime.now(),
+        status: StatusNumber.none,
+        source: SourceNumber.created,
+      );
+      // updatePuzzleメソッドを呼び出してパズルをデータベースに保存
+      int _ = await localStorageService.updatePuzzle(puzzle);
+      return puzzle;
+    }else{
+      // パズルデータを作成
+      Puzzle puzzle = Puzzle(
+        name: name,
+        grid: _puzzleController.grid,
+        creationDate: DateTime.now(),
+        status: StatusNumber.none,
+        source: SourceNumber.created,
+      );
 
-    // パズルデータを作成
-    Puzzle puzzle = Puzzle(
-      name: name,
-      grid: _puzzleController.grid,
-      creationDate: DateTime.now(),
-      status: StatusNumber.none,
-      currentState: _puzzleController.grid,
-      source: SourceNumber.created,
-    );
-
-    // insertPuzzleメソッドを呼び出してパズルをデータベースに保存
-    int _ = await localStorageService.insertPuzzle(puzzle);
+      // insertPuzzleメソッドを呼び出してパズルをデータベースに保存
+      int _ = await localStorageService.insertPuzzle(puzzle);
+      return puzzle;
+    }
   }
   void _handleNumberTap(int number) {
     // Set the selected number in the controller
@@ -95,8 +125,14 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
   }
   // AlertDialogがポップアップとして表示されます。
   void _showSaveDialog(BuildContext context) {
+    Puzzle createdPuzzle;
     // 名前を入力するためのテキストコントローラ
-    TextEditingController nameController = TextEditingController();
+    // 初期値を設定
+    String initialText = widget.puzzle?.name ?? '';
+    if (initialText == 'No Name') {
+      initialText = '';
+    }
+    TextEditingController nameController = TextEditingController(text: initialText);
 
     showDialog(
       context: context,
@@ -109,14 +145,20 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
               children: <Widget>[
                 TextField(
                   controller: nameController,
+                  maxLength: 15, // 入力数を15文字に制限
                   decoration: InputDecoration(
                     labelText: AppLocalizations.of(context)!.name, // 入力欄のラベル
                   ),
                 ),
-                PreviewGrid(
-                  grid: _puzzleController.grid,
-                  currentState: _puzzleController.grid,
-                  ), // プレビューグリッドを表示
+                    Flexible(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: PreviewGrid(
+                          grid: _puzzleController.grid,
+                          currentState: _puzzleController.grid,
+                        ),
+                      ),
+                    )
               ],
             ),
           ),
@@ -131,7 +173,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
             // 保存ボタン
             TextButton(
               child: Text(AppLocalizations.of(context)!.save),
-              onPressed: () {
+              onPressed: () async {
                 // 保存処理を実行するコードをここに書く
                 // 例えば、名前を含むパズルを保存するなど
                 String name = nameController.text; // 入力された名前を取得
@@ -139,12 +181,37 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
                 if (name.isEmpty) {
                   name = 'No Name';
                 }
-                _savePuzzle(name);
-                // home_screenに戻る。ライブラリ画面ができたらそこに飛ばしてもいいし、問題画面でもいい
-                Navigator.pushReplacement(
+                await savePuzzle(name);
+                if (!mounted) return; // ここでウィジェットがまだマウントされているか確認
+                // home_screenに戻る。
+                Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (Route<dynamic> route) => false,
                 );
+              },
+            ),
+            // 保存and play ボタン
+            TextButton(
+              child: Text("Save And Play"),
+              // child: Text(AppLocalizations.of(context)!.save),
+              onPressed: () async {
+                // 保存処理を実行するコードをここに書く
+                // 例えば、名前を含むパズルを保存するなど
+                String name = nameController.text; // 入力された名前を取得
+                // 名前とパズルデータを使って保存処理を実行
+                if (name.isEmpty) {
+                  name = 'No Name';
+                }
+                createdPuzzle = await savePuzzle(name);
+                if (!mounted) return; // ここでウィジェットがまだマウントされているか確認
+                // play 画面に遷移する。
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => PlayPuzzleScreen(puzzle: createdPuzzle, playingData: PlayingData(id: null, currentGrid: createdPuzzle.grid))),
+                  (Route<dynamic> route) => false,
+                );
+
               },
             ),
           ],
@@ -158,9 +225,12 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
     double screenWidth = MediaQuery.of(context).size.width;
     double gridWidth = screenWidth * 0.98; // 98% of the screen width
     double gridMarginTop = MediaQuery.of(context).size.height * 0.01; // 1% of the screen height
+    bool isInvalid = _puzzleController.invalidCells.any((row) => row.any((cell) => cell == true));
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.generate_sudoku),
+        // leadingのボタンの挙動を設定する必要あり
+        
       ),
       body: Column(
         children: [
@@ -176,6 +246,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
                   highlightedCells: _puzzleController.highlightedCells,
                   selectedcell: _puzzleController.selectedCell,
                   memoGrid: _puzzleController.memoGrid,
+                  initialGrid: _puzzleController.grid,
                 ),
               ),
             ),
@@ -191,11 +262,14 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
             onNumberTap: _handleNumberTap,
             onNumberLongPress: _handleNumberLongPress,
             onNumberLock: _handleNumberLock,
+            grid: _puzzleController.grid,
+            isNumberLocked: _puzzleController.isNumberLocked,
           ),
           SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
           SaveButtonBar(
             onReset: _handleReset,
             onPreview: _handlePreview,
+            isInvalid: isInvalid,
           ),
           SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
           // Add Preview and Save button implementations here

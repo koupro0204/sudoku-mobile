@@ -16,6 +16,7 @@ class PreviewGrid extends StatelessWidget {
     
     return GridView.builder(
       shrinkWrap: true,
+      
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: grid.length,
@@ -36,11 +37,15 @@ class PreviewGrid extends StatelessWidget {
         final bool isTopSide = x % 3 == 0 || x == 0;
 
         // currentState と grid の数字が同じ場合は黒、0の場合は空白、違う場合は青を表示
-        Color textColor = (currentStateNumber == number)
+        Color textColor = (currentStateNumber == number || (currentStateNumber == 0 && number != 0))
             ? (number == 0 ? Colors.transparent : Colors.black)
             : Colors.blue;
 
-        String textToDisplay = (currentStateNumber != 0 ? currentStateNumber.toString() : '');
+
+        String textToDisplay = currentStateNumber != 0
+            ? currentStateNumber.toString()
+            : number != 0 ? number.toString() : '';
+
 
 
         return Container(

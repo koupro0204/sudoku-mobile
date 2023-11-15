@@ -28,29 +28,56 @@ class LocalStorageService {
     String path = join(documentDirectory, 'sudokuAssistant.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 6, // バージョン番号を増やす
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade, // アップグレードのコールバックを追加
     );
   }
-
+  // Private helper method to get the database instance
+  Future<Database> _getDatabase() async {
+    return _database ??= await _initDatabase();
+  }
   // Define the database schema
   static Future _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE puzzles(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         grid TEXT,
-        currentState TEXT,
         name TEXT,
         status INTEGER,
         creationDate TEXT,
         sharedCode TEXT,
-        source INTEGER
+        source INTEGER,
+        memoGrid TEXT
+      )
+    ''');
+      await db.execute('''
+      CREATE TABLE playing_data(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        puzzleId INTEGER,
+        currentGrid TEXT,
+        time INTEGER,
+        FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
       )
     ''');
   }
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // バージョン1からバージョン2にアップグレードするためのスキーマ変更
+      await db.execute('ALTER TABLE playing_data ADD COLUMN status INTEGER');
+    }
+    if (oldVersion < 3) {
+      // バージョン2からバージョン3にアップグレードするためのスキーマ変更
+      await db.execute('ALTER TABLE playing_data ADD COLUMN memoGrid TEXT');
+    }
+    if (oldVersion < 6) {
+      // playing_data テーブルからすべてのデータを削除
+      await db.execute('DELETE FROM playing_data');
+    }
+    // バージョンごとに必要なアップグレード手順を追加します。
+  }
 
   // CRUD operations:
-
   // Insert a new puzzle
   Future<int> insertPuzzle(Puzzle puzzle) async {
     final db = await _getDatabase();
@@ -85,8 +112,35 @@ class LocalStorageService {
     );
   }
 
-  // Private helper method to get the database instance
-  Future<Database> _getDatabase() async {
-    return _database ??= await _initDatabase();
+  // playingDataのCRUD操作
+  Future<int> insertPlayingData(PlayingData playingData) async {
+    final db = await _getDatabase();
+    return db.insert('playing_data', playingData.toMap());
   }
+
+  Future<List<PlayingData>> getPlayingDataByPuzzleId(int puzzleId) async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('playing_data', where: 'puzzleId = ?', whereArgs: [puzzleId]);
+    return List.generate(maps.length, (i) => PlayingData.fromMap(maps[i]));
+  }
+
+  Future<int> updatePlayingData(PlayingData playingData) async {
+    final db = await _getDatabase();
+    return db.update(
+      'playing_data',
+      playingData.toMap(),
+      where: 'id = ?',
+      whereArgs: [playingData.id],
+    );
+  }
+
+  Future<int> deletePlayingData(int id) async {
+    final db = await _getDatabase();
+    return db.delete(
+      'playing_data',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
 }

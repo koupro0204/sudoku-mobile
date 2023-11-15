@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 class SudokuGrid extends StatelessWidget {
+  // currentGridを追加
   final Function(int, int) onCellTap;
   final List<List<int>> grid;
+  final List<List<int>>? initialGrid;
   final List<List<bool>> invalidCells;
   final List<List<bool>> highlightedCells;
   final List<List<bool>> selectedcell;
-  final List<List<List<int>>> memoGrid; // Add memoGrid to the constructor
+  final List<List<List<int>>> memoGrid;
+  
   // Include highlightedCells in the constructor
   const SudokuGrid({
     super.key,
@@ -16,6 +19,7 @@ class SudokuGrid extends StatelessWidget {
     required this.highlightedCells,
     required this.selectedcell,
     required this.memoGrid,
+    this.initialGrid,
   });
 
   @override
@@ -34,23 +38,25 @@ class SudokuGrid extends StatelessWidget {
         final bool isHighlighted = highlightedCells[x][y];
         final bool isSelected = selectedcell[x][y];
         final List<int> memo = memoGrid[x][y];
+        final int initialGridNumber = initialGrid?[x][y] ?? 0;
+        bool isInitial = initialGridNumber != 0;
         bool hasMemo = memo.isNotEmpty;
 
         // Update the color based on the highlighting
         Color? backgroundColor;
         if (isHighlighted) {
-          backgroundColor = Colors.lightBlueAccent.withAlpha(50);
-        }
-        if (isSelected) {
-          backgroundColor = Colors.blueAccent.withAlpha(80);
+          backgroundColor = Colors.blueAccent.withAlpha(30);
         }
         if (isInvalid) {
           backgroundColor = Colors.red.withAlpha(100);
         }
+        if (isSelected) {
+          backgroundColor = Colors.lightBlueAccent.withAlpha(70);
+        }
         
         // 境界線の太さを定義する
         const BorderSide normalSide = BorderSide(color: Colors.grey, width: 0.5);
-        const BorderSide thickSide = BorderSide(color: Colors.black, width: 2);
+        const BorderSide thickSide = BorderSide(color: Colors.black, width: 1.5);
 
         // 3x3ボックスの境界かどうかをチェック
         final bool isRightSide = y == 8; // 最後の列
@@ -67,10 +73,12 @@ class SudokuGrid extends StatelessWidget {
 
         // メインの数字のスタイルを定義する
         final TextStyle mainNumberStyle = TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: isInvalid ? Colors.red : Colors.black,
+          fontSize: 30,
+          // fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w400,
+          color: isInvalid ? Colors.red : isInitial? Colors.black: Colors.blue.shade800,
         );
+
         return GestureDetector(
           onTap: () => onCellTap(x, y),
           child: Container(

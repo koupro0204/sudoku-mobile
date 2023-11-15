@@ -4,11 +4,15 @@ class NumberButtonBar extends StatefulWidget {
   final Function(int) onNumberTap;
   final Function(int) onNumberLongPress;
   final Function(bool) onNumberLock; // Callback for locking the number
+  final List<List<int>> grid;
+  final bool isNumberLocked;
 
   const NumberButtonBar({super.key, 
     required this.onNumberTap,
     required this.onNumberLongPress,
     required this.onNumberLock,
+    required this.grid,
+    required this.isNumberLocked,
   });
 
   @override
@@ -17,14 +21,12 @@ class NumberButtonBar extends StatefulWidget {
 
 class NumberButtonBarState extends State<NumberButtonBar> {
   int? _selectedNumber;
-  bool _isNumberLocked = false; // To track if a number is locked
 
   void _handleNumberTap(int number) {
-    if (_isNumberLocked) {
+    if (widget.isNumberLocked) {
       // If a number is already locked, unlock it first
-      _isNumberLocked = false;
       _selectedNumber = null;
-      widget.onNumberLock(_isNumberLocked);
+      widget.onNumberLock(false);
     } else{
       widget.onNumberTap(number);
     }
@@ -33,47 +35,75 @@ class NumberButtonBarState extends State<NumberButtonBar> {
 
   void _handleNumberLongPress(int number) {
     // // Long press will lock the number
-    if (_isNumberLocked && _selectedNumber == number) {
+    if (widget.isNumberLocked && _selectedNumber == number) {
       // If the number is already locked, unlock it
-      _isNumberLocked = false;
+      widget.onNumberLock(false);
       _selectedNumber = null;
     } else {
       // Select the number and lock it
       _selectedNumber = number;
-      _isNumberLocked = true;
+      widget.onNumberLock(true);
       widget.onNumberLongPress(number);
     }
 
-    widget.onNumberLock(_isNumberLocked);
     setState(() {});
+  }
+  Map<int, int> _countNumbersInGrid(List<List<int>> grid) {
+    Map<int, int> numberCount = {};
+    for (var row in grid) {
+      for (var number in row) {
+        if (number != 0) { // 0 は無視する
+          numberCount[number] = (numberCount[number] ?? 0) + 1;
+        }
+      }
+    }
+    return numberCount;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(9, (index) {
-        return Expanded(
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _selectedNumber == index + 1 && _isNumberLocked
-                  ? Colors.blueAccent
-                  : Colors.lightBlueAccent[100], // Highlight the selected number if locked
-            ),
-            onPressed: () => _handleNumberTap(index + 1),
-            onLongPress: () => _handleNumberLongPress(index + 1),
-            child:  Text(
-              '${index + 1}',
-              style: TextStyle(
-                fontSize: 50,
-                fontWeight: FontWeight.bold,
-                color: _selectedNumber == index + 1 && _isNumberLocked
-                    ? Colors.white
-                    : Colors.black,
-              ),
-            ),
-          ),
-        );
-      }),
+    // grid内の各数字の出現回数をカウント
+    Map<int, int> numberCount = _countNumbersInGrid(widget.grid);
+
+    return Padding(
+      padding: EdgeInsets.only(left: 10.0, right: 10.0,top: 10.0, bottom: 20.0),
+      child: Row(
+        children: 
+        List.generate(9, (index) {
+          int number = index + 1;
+          // この数字が9回出現した場合は非表示にする
+          bool shouldHide = numberCount[number] == 9;
+          // if (shouldHide) {
+          //   // If a number is locked, hide all other numbers
+          //   _isNumberLocked = false;
+          // }
+          return Expanded(
+            child: shouldHide 
+              ? Container() // 数字が9回出現した場合は何も表示しない
+              : TextButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _selectedNumber == number && widget.isNumberLocked
+                        ? null
+                        : null
+                        // : Colors.white.withOpacity(0.95), // 選択された数字をハイライト
+                  ),
+                  onPressed: () => _handleNumberTap(number),
+                  onLongPress: () => _handleNumberLongPress(number),
+                  child: Text(
+                    '$number',
+                    style: TextStyle(
+                      fontSize: 50,
+                      fontWeight: FontWeight.bold,
+                      color:  widget.isNumberLocked
+                          ? _selectedNumber == number
+                          ? Colors.blue.shade800 :Colors.blue.shade800.withOpacity(0.2)
+                          : Colors.blue.shade800,
+                    ),
+                  ),
+                ),
+          );
+        }),
+      )
     );
   }
 }

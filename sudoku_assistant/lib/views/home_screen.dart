@@ -3,10 +3,11 @@ import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/views/create_puzzle_screen.dart';
 import 'package:sudoku_assistant/views/library_screen.dart';
-// import 'package:sudoku_assistant/widgets/puzzle_thumbnail.dart'; 
+import 'package:sudoku_assistant/views/play_screen.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
+
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key});
 
   @override
   HomeScreenState createState() => HomeScreenState();
@@ -15,29 +16,38 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   Puzzle? lastPlayedPuzzle;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadLastPlayedPuzzle();
-  }
-
-  Future<void> _loadLastPlayedPuzzle() async {
-    // Assuming you have a method in LocalStorageService to get the last played puzzle
+  Future<Puzzle?> _fetchLastPlayedPuzzle() async {
+    // パズル検索の方法を変える。
     var puzzles = await LocalStorageService().getPuzzles();
     if (puzzles.isNotEmpty) {
-      // Sorting puzzles by last played date to get the most recent one
       puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
-      setState(() {
-        lastPlayedPuzzle = Puzzle.fromMap(puzzles.first.toMap());
-      });
+      final lastPlayedPuzzle = Puzzle.fromMap(puzzles.first.toMap());
+      final playingData =
+          await LocalStorageService().getPlayingDataByPuzzleId(lastPlayedPuzzle.id!);
+      if (playingData.isNotEmpty) {
+        playingData.sort((a, b) => b.id!.compareTo(a.id!));
+        lastPlayedPuzzle.setPlayingData(playingData.first);
+      } else {
+        lastPlayedPuzzle.setPlayingData(
+          PlayingData(
+            id: null,
+            currentGrid: List.generate(9, (_) => List.filled(9, 0)),
+          ),
+        );
+      }
+      return lastPlayedPuzzle;
+    } else {
+      return null;
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isLastPuzzleAvailable = lastPlayedPuzzle != null;
-    final lastPuzzleGrid = isLastPuzzleAvailable ? lastPlayedPuzzle!.grid : [[0]];
-    final lastPuzzleCurrentState = isLastPuzzleAvailable ? lastPlayedPuzzle!.currentState : [[0]];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sudoku Assistant'),
@@ -46,54 +56,89 @@ class HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            if (isLastPuzzleAvailable) ...[
-              Text(lastPlayedPuzzle!.name),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.7, // 画面の横幅の85%に設定
-                child: PreviewGrid(
-                  grid: lastPuzzleGrid,
-                  currentState: lastPuzzleCurrentState,
-                  ), // lastPuzzleGridは前回保存されたパズルのグリッドデータ
-              ),
-              const SizedBox(height: 20), // ボタンとの間隔
-              ElevatedButton(
-                onPressed: () {
-                  // Navigate to the Play Puzzle Screen
-                },
-                child: const Text('Play This Puzzle'),
-              ),
-            ],
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to the Create Puzzle Screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CreatePuzzleScreen(),
-                  ),
-                );
+            FutureBuilder<Puzzle?>(
+              future: _fetchLastPlayedPuzzle(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else {
+                  final isLastPuzzleAvailable = snapshot.data != null;
+                  final lastPuzzleGrid =
+                      isLastPuzzleAvailable ? snapshot.data!.grid : [[0]];
+                  final lastPuzzleCurrentState =
+                      isLastPuzzleAvailable ? snapshot.data!.playingData!.currentGrid : [[0]];
+
+                  return Column(
+                    children: <Widget>[
+                      if (isLastPuzzleAvailable) ...[
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 5.0),
+                          child: Text(
+                            snapshot.data!.name,
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              // fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.7,
+                          child: PreviewGrid(
+                            grid: lastPuzzleGrid,
+                            currentState: lastPuzzleCurrentState,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    PlayPuzzleScreen(puzzle: snapshot.data!, playingData: snapshot.data!.playingData!),
+                              ),
+                            );
+                          },
+                          child: const Text('Play This Puzzle'),
+                        ),
+                      ],
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const CreatePuzzleScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('Create Puzzle'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PuzzleLibraryScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('Puzzle Library'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          // indicate widget for entering shared code
+                          // or
+                          // Navigate to the Enter Shared Code Screen
+                        },
+                        child: const Text('Enter Shared Code'),
+                      ),
+                    ],
+                  );
+                }
               },
-              child: const Text('Create Puzzle'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to the Puzzle Library Screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PuzzleLibraryScreen(),
-                  ),
-                );
-              },
-              child: const Text('Puzzle Library'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // indicate widget for entering shared code
-                // or
-                // Navigate to the Enter Shared Code Screen
-              },
-              child: const Text('Enter Shared Code'),
             ),
           ],
         ),

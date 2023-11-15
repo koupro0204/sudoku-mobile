@@ -35,6 +35,7 @@ class SudokuAssistantApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        scaffoldBackgroundColor: Colors.white.withOpacity(0.95),
       ),
       home: const HomeScreen(), // The first screen displayed when the app is launched
     );
