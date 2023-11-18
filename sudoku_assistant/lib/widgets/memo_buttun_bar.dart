@@ -30,49 +30,75 @@ class MemoButtonBarState extends State<MemoButtonBar> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // Memoボタン
+        // 元に戻すボタン
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: Icon(
-                isMemoMode ? Icons.edit : Icons.edit_off, // メモがオンのときはeditアイコン、オフのときはedit_offアイコン
-                color: isMemoMode ? Colors.blue : null, // メモがオンのときは青色
+            InkWell(
+              onTap: () {
+                // 元に戻す機能をここに書く
+                widget.onUndo();
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.undo),
+                    onPressed: null, // IconButtonのonPressedはnullに設定
+                  ),
+                  Text(AppLocalizations.of(context)!.undo),
+                ],
               ),
-              onPressed: () => _handleMemoTap(),
             ),
-            Text(AppLocalizations.of(context)!.memo)
           ],
         ),
         // 消すボタン
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 // 消しゴムの機能をここに書く
                 widget.onCellDelete();
               },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: null, // IconButtonのonPressedはnullに設定
+                  ),
+                  Text(AppLocalizations.of(context)!.erase),
+                ],
+              ),
             ),
-            Text(AppLocalizations.of(context)!.erase)
           ],
         ),
-        // 元に戻すボタン
+        // Memoボタン
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(Icons.undo),
-              onPressed: () {
-                // 元に戻す機能をここに書く
-                widget.onUndo();
-              },
+            InkWell(
+              onTap: () => _handleMemoTap(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      isMemoMode ? Icons.edit : Icons.edit_off, // メモがオンのときはeditアイコン、オフのときはedit_offアイコン
+                      color: isMemoMode ? Colors.blue : null, // メモがオンのときは青色
+                    ),
+                    onPressed: null, // IconButtonのonPressedはnullに設定
+                    iconSize: 40.0, // アイコンのサイズを大きく設定
+                  ),
+                  Text(AppLocalizations.of(context)!.memo),
+                ],
+              ),
             ),
-            Text(AppLocalizations.of(context)!.undo)
           ],
         ),
       ],
     );
+
   }
 }

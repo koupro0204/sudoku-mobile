@@ -55,6 +55,7 @@ class PuzzleController {
   void setNumberLockState(bool locked) {
     
     isNumberLocked = locked;
+    selectedNumber = null;
     if (!locked) {
       if (selectedRow != null && selectedCol != null) {
         handleCellTap(selectedRow!, selectedCol!);
@@ -113,6 +114,11 @@ class PuzzleController {
         }
       }
     } else {
+        if(grid[x][y] != 0){
+          selectedNumber=grid[x][y];
+        } else {
+          selectedNumber = null;
+        }
       // In Direct Input Mode, you would open a number selection interface
       highlightManager.highlightAllRelatedCells(x, y, grid);
     }

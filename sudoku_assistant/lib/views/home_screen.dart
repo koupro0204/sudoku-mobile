@@ -17,24 +17,36 @@ class HomeScreenState extends State<HomeScreen> {
   Puzzle? lastPlayedPuzzle;
 
   Future<Puzzle?> _fetchLastPlayedPuzzle() async {
-    // パズル検索の方法を変える。
-    var puzzles = await LocalStorageService().getPuzzles();
-    if (puzzles.isNotEmpty) {
-      puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
-      final lastPlayedPuzzle = Puzzle.fromMap(puzzles.first.toMap());
-      final playingData =
-          await LocalStorageService().getPlayingDataByPuzzleId(lastPlayedPuzzle.id!);
-      if (playingData.isNotEmpty) {
-        playingData.sort((a, b) => b.id!.compareTo(a.id!));
-        lastPlayedPuzzle.setPlayingData(playingData.first);
-      } else {
-        lastPlayedPuzzle.setPlayingData(
-          PlayingData(
-            id: null,
-            currentGrid: List.generate(9, (_) => List.filled(9, 0)),
-          ),
-        );
-      }
+    // 従来のコード
+    // var puzzles = await LocalStorageService().getPuzzles();
+    // if (puzzles.isNotEmpty) {
+    //   puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
+    //   final lastPlayedPuzzle = Puzzle.fromMap(puzzles.first.toMap());
+    //   final playingData =
+    //       await LocalStorageService().getPlayingDataByPuzzleId(lastPlayedPuzzle.id!);
+    //   if (playingData.isNotEmpty) {
+    //     playingData.sort((a, b) => b.id!.compareTo(a.id!));
+    //     lastPlayedPuzzle.setPlayingData(playingData.first);
+    //   } else {
+    //     lastPlayedPuzzle.setPlayingData(
+    //       PlayingData(
+    //         id: null,
+    //         currentGrid: List.generate(9, (_) => List.filled(9, 0)),
+    //       ),
+    //     );
+    //   }
+    //   return lastPlayedPuzzle;
+    // } else {
+    //   return null;
+    // }
+    var playingDatas = await LocalStorageService().getPlayingDataIsPlaying();
+    if (playingDatas.isNotEmpty) {
+      playingDatas.sort((a, b) => b.id!.compareTo(a.id!));
+      final lastPlayedPlayingData = PlayingData.fromMap(playingDatas.first.toMap());
+      final lastPlayedPuzzle =
+          await LocalStorageService().getPuzzleById(lastPlayedPlayingData.puzzleId!);
+      lastPlayedPuzzle.setPlayingData(lastPlayedPlayingData);
+
       return lastPlayedPuzzle;
     } else {
       return null;

@@ -75,8 +75,10 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
       );
 
       // insertPuzzleメソッドを呼び出してパズルをデータベースに保存
-      int _ = await localStorageService.insertPuzzle(puzzle);
+      int insertedId = await localStorageService.insertPuzzle(puzzle);
+      puzzle = puzzle.copyWith(id: insertedId);
       return puzzle;
+
     }
   }
   void _handleNumberTap(int number) {
@@ -86,7 +88,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
       _puzzleController.selectedNumber = number;
       _puzzleController.handleNumberInput(_puzzleController.selectedRow!, _puzzleController.selectedCol!);
     }
-      _puzzleController.selectedNumber = null;
+      // _puzzleController.selectedNumber = null;
     setState(() {});
   }
   void _handleNumberLongPress(int number) {
@@ -208,7 +210,16 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
                 // play 画面に遷移する。
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => PlayPuzzleScreen(puzzle: createdPuzzle, playingData: PlayingData(id: null, currentGrid: createdPuzzle.grid))),
+                  MaterialPageRoute(builder: (context) => 
+                    PlayPuzzleScreen(
+                      puzzle: createdPuzzle,
+                      playingData: PlayingData(
+                        id: null,
+                        currentGrid: createdPuzzle.grid,
+                        
+                        )
+                      )
+                    ),
                   (Route<dynamic> route) => false,
                 );
 
@@ -241,6 +252,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
                 width: gridWidth, // Set the width of the Container
                 child: SudokuGrid(
                   onCellTap: _handleCellTap,
+                  selectedNumber: _puzzleController.selectedNumber,
                   grid: _puzzleController.grid,
                   invalidCells: _puzzleController.invalidCells,
                   highlightedCells: _puzzleController.highlightedCells,

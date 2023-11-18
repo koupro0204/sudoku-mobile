@@ -33,12 +33,12 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
   }
 
   Future<void> initializePlayingData() async {
-    if (widget.playingData.id != null) {
+    if (widget.playingData.id != null && widget.playingData.status != PlayStatusNumber.completed) {
       // プレイ中のパズルの場合、プレイ中のパズルのデータを読み込む
       playingData = widget.playingData;
     } else {
       // プレイ中のパズルでない場合、新しいplayDataを作成する
-      playingData = PlayingData(
+      PlayingData newPlayingData = PlayingData(
         id: null,
         puzzleId: widget.puzzle.id,
         currentGrid: List<List<int>>.from(widget.puzzle.grid.map((list) => List<int>.from(list))),
@@ -48,16 +48,16 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
       );
 
       // データを保存し、新しいIDを取得
-      int newId = await LocalStorageService().insertPlayingData(playingData);
+      int newId = await LocalStorageService().insertPlayingData(newPlayingData);
 
       // 新しいIDでplayingDataを更新
       playingData = PlayingData(
         id: newId,
         puzzleId: widget.puzzle.id,
-        currentGrid: playingData.currentGrid,
-        memoGrid: playingData.memoGrid,
-        elapsedTime: playingData.elapsedTime,
-        status: playingData.status,
+        currentGrid: newPlayingData.currentGrid,
+        memoGrid: newPlayingData.memoGrid,
+        elapsedTime: newPlayingData.elapsedTime,
+        status: newPlayingData.status,
       );
     }
 
@@ -79,7 +79,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
   }
 
 
-  void _savePuzzle() async {
+  Future<void> _savePuzzle() async {
     // LocalStorageServiceのインスタンスを取得
     LocalStorageService localStorageService = LocalStorageService();
     if (_puzzleController.isCompleted) {
@@ -120,37 +120,39 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
     }
   }
   
-  void _handleCellTap(int x, int y) {
+  void _handleCellTap(int x, int y) async {
     _puzzleController.handleCellTap(x, y);
-    setState(() {
-        if (_puzzleController.isCompleted) {
-
-          _savePuzzle();
-          // パズルが完了したら画面遷移
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => CompletedScreen(
-              puzzle: widget.puzzle,
-              playingData: playingData,
-              )
-            ) 
-          );
-        }
-    }); // Refresh the UI with the updated grid state
+    setState(() {}); // Refresh the UI with the updated grid state
+    if (_puzzleController.isCompleted) {
+      await _savePuzzle();
+      // 非同期処理後にBuildContextがまだ有効かを確認
+      if (!mounted) return;
+      // パズルが完了したら画面遷移
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => CompletedScreen(
+          puzzle: widget.puzzle,
+          playingData: playingData,
+          )
+        ) 
+      );
+    }
   }
-  void _handleNumberTap(int number) {
+  void _handleNumberTap(int number) async{
     // Set the selected number in the controller
     // If a cell was previously selected, apply the number to that cell
     if (_puzzleController.selectedRow != null && _puzzleController.selectedCol != null) {
       _puzzleController.selectedNumber = number;
       _puzzleController.handleNumberInput(_puzzleController.selectedRow!, _puzzleController.selectedCol!);
     }
-      _puzzleController.selectedNumber = null;
+      // _puzzleController.selectedNumber = null;
     //setState内で完了を検知
-    setState(() {
+    setState(()  {
+    });
       if (_puzzleController.isCompleted) {
-
-        _savePuzzle();
+        await _savePuzzle();
+        // 非同期処理後にBuildContextがまだ有効かを確認
+        if (!mounted) return;
         // パズルが完了したら画面遷移
         Navigator.pushReplacement(
           context,
@@ -161,7 +163,6 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
           ) 
         );
       }
-    });
     
   }
   void _handleNumberLongPress(int number) {
@@ -238,6 +239,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
                 width: gridWidth, // Set the width of the Container
                 child: SudokuGrid(
                   onCellTap: _handleCellTap,
+                  selectedNumber: _puzzleController.selectedNumber,
                   grid: _puzzleController.grid,
                   invalidCells: _puzzleController.invalidCells,
                   highlightedCells: _puzzleController.highlightedCells,

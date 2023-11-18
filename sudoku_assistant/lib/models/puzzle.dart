@@ -50,7 +50,28 @@ class Puzzle {
       'source': source,
     };
   }
-
+  // copyWith メソッドを追加
+  Puzzle copyWith({
+    int? id,
+    List<List<int>>? grid,
+    String? name,
+    int? status,
+    DateTime? creationDate,
+    String? sharedCode,
+    int? source,
+    PlayingData? playingData,
+  }) {
+    return Puzzle(
+      id: id ?? this.id,
+      grid: grid ?? this.grid,
+      name: name ?? this.name,
+      status: status ?? this.status,
+      creationDate: creationDate ?? this.creationDate,
+      sharedCode: sharedCode ?? this.sharedCode,
+      source: source ?? this.source,
+      playingData: playingData ?? this.playingData,
+    );
+  }
   // Convert a Map into a Puzzle instance
   factory Puzzle.fromMap(Map<String, dynamic> map) {
     return Puzzle(

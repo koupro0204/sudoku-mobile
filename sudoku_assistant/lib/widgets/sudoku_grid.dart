@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class SudokuGrid extends StatelessWidget {
   // currentGridを追加
   final Function(int, int) onCellTap;
+  final int? selectedNumber;
   final List<List<int>> grid;
   final List<List<int>>? initialGrid;
   final List<List<bool>> invalidCells;
@@ -14,6 +15,7 @@ class SudokuGrid extends StatelessWidget {
   const SudokuGrid({
     super.key,
     required this.onCellTap,
+    required this.selectedNumber,
     required this.grid,
     required this.invalidCells,
     required this.highlightedCells,
@@ -45,7 +47,7 @@ class SudokuGrid extends StatelessWidget {
         // Update the color based on the highlighting
         Color? backgroundColor;
         if (isHighlighted) {
-          backgroundColor = Colors.blueAccent.withAlpha(30);
+          backgroundColor = Colors.blueAccent.withAlpha(50);
         }
         if (isInvalid) {
           backgroundColor = Colors.red.withAlpha(100);
@@ -70,6 +72,7 @@ class SudokuGrid extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Colors.black,
         );
+
 
         // メインの数字のスタイルを定義する
         final TextStyle mainNumberStyle = TextStyle(
@@ -97,10 +100,15 @@ class SudokuGrid extends StatelessWidget {
                 ? GridView.count(
                     crossAxisCount: 3, // 3列
                     children: List.generate(9, (index) {
+                      // index + 1 は、GridViewのセルの番号（1から始まる）
+                      bool hasCurrentMemo = memo.contains(index + 1);
                       return Center(
-                        child: Text(
-                          memo.isNotEmpty && memo.length > index ? memo[index].toString() : '',
-                          style: memoStyle,
+                        child: Container(
+                          color: hasCurrentMemo && selectedNumber == (index + 1) ? Colors.yellow : Colors.transparent,
+                          child: Text(
+                            hasCurrentMemo ? (index + 1).toString() : '',
+                            style: memoStyle,
+                          ),
                         ),
                       );
                     }),

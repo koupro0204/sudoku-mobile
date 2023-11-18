@@ -70,7 +70,7 @@ class LocalStorageService {
       // バージョン2からバージョン3にアップグレードするためのスキーマ変更
       await db.execute('ALTER TABLE playing_data ADD COLUMN memoGrid TEXT');
     }
-    if (oldVersion < 6) {
+    if (oldVersion <67) {
       // playing_data テーブルからすべてのデータを削除
       await db.execute('DELETE FROM playing_data');
     }
@@ -89,6 +89,11 @@ class LocalStorageService {
     final db = await _getDatabase();
     final List<Map<String, dynamic>> maps = await db.query('puzzles');
     return List.generate(maps.length, (i) => Puzzle.fromMap(maps[i]));
+  }
+  Future<Puzzle> getPuzzleById(int id) async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('puzzles', where: 'id = ?', whereArgs: [id]);
+    return Puzzle.fromMap(maps.first);
   }
 
   // Update an existing puzzle
@@ -121,6 +126,11 @@ class LocalStorageService {
   Future<List<PlayingData>> getPlayingDataByPuzzleId(int puzzleId) async {
     final db = await _getDatabase();
     final List<Map<String, dynamic>> maps = await db.query('playing_data', where: 'puzzleId = ?', whereArgs: [puzzleId]);
+    return List.generate(maps.length, (i) => PlayingData.fromMap(maps[i]));
+  }
+  Future<List<PlayingData>> getPlayingDataIsPlaying() async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('playing_data', where: 'status = ?', whereArgs: [PlayStatusNumber.playing]);
     return List.generate(maps.length, (i) => PlayingData.fromMap(maps[i]));
   }
 

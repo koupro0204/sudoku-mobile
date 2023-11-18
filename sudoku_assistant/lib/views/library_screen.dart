@@ -48,9 +48,9 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
     if (_selectedFilter == PuzzleFilter.all) {
       return puzzles;
     } else if (_selectedFilter == PuzzleFilter.created) {
-      return puzzles.where((puzzle) => puzzle.source == 'created').toList();
+      return puzzles.where((puzzle) => puzzle.source == SourceNumber.created).toList();
     } else if (_selectedFilter == PuzzleFilter.shared) {
-      return puzzles.where((puzzle) => puzzle.source == 'shared').toList();
+      return puzzles.where((puzzle) => puzzle.source == SourceNumber.share).toList();
     }
     return puzzles;
   }
@@ -64,7 +64,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
     setState(() {
       // パズルリストを再取得
       _getFPuzzles();
-  });
+    });
   }
 
   Future<Puzzle> _handleGetShareCode(Puzzle puzzle) async {
