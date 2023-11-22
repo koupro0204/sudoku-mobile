@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-// import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:sudoku_assistant/views/home_screen.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensures plugin services are initialized
-  // await Firebase.initializeApp(); // Initialize Firebase
+  await Firebase.initializeApp(); // Initialize Firebase
   await LocalStorageService.initialize(); // Initialize local storage service
 
   runApp(const SudokuAssistantApp());

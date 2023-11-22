@@ -4,6 +4,7 @@ import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/views/create_puzzle_screen.dart';
 import 'package:sudoku_assistant/views/library_screen.dart';
 import 'package:sudoku_assistant/views/play_screen.dart';
+import 'package:sudoku_assistant/views/share_cord_screen.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,28 +18,6 @@ class HomeScreenState extends State<HomeScreen> {
   Puzzle? lastPlayedPuzzle;
 
   Future<Puzzle?> _fetchLastPlayedPuzzle() async {
-    // 従来のコード
-    // var puzzles = await LocalStorageService().getPuzzles();
-    // if (puzzles.isNotEmpty) {
-    //   puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
-    //   final lastPlayedPuzzle = Puzzle.fromMap(puzzles.first.toMap());
-    //   final playingData =
-    //       await LocalStorageService().getPlayingDataByPuzzleId(lastPlayedPuzzle.id!);
-    //   if (playingData.isNotEmpty) {
-    //     playingData.sort((a, b) => b.id!.compareTo(a.id!));
-    //     lastPlayedPuzzle.setPlayingData(playingData.first);
-    //   } else {
-    //     lastPlayedPuzzle.setPlayingData(
-    //       PlayingData(
-    //         id: null,
-    //         currentGrid: List.generate(9, (_) => List.filled(9, 0)),
-    //       ),
-    //     );
-    //   }
-    //   return lastPlayedPuzzle;
-    // } else {
-    //   return null;
-    // }
     var playingDatas = await LocalStorageService().getPlayingDataIsPlaying();
     if (playingDatas.isNotEmpty) {
       playingDatas.sort((a, b) => b.id!.compareTo(a.id!));
@@ -88,7 +67,17 @@ class HomeScreenState extends State<HomeScreen> {
                         Padding(
                           padding: EdgeInsets.only(bottom: 5.0),
                           child: Text(
-                            snapshot.data!.name,
+                            "last played puzzle",
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              // fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 5.0),
+                          child: Text(
+                            "puzzle name: ${snapshot.data!.name}",
                             style: TextStyle(
                               fontSize: 18.0,
                               // fontWeight: FontWeight.bold,
@@ -144,6 +133,14 @@ class HomeScreenState extends State<HomeScreen> {
                           // indicate widget for entering shared code
                           // or
                           // Navigate to the Enter Shared Code Screen
+                          // text box dialog
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EnterSharedCodeScreen(),
+                            ),
+                          );
+
                         },
                         child: const Text('Enter Shared Code'),
                       ),

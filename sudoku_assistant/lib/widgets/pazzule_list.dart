@@ -20,7 +20,7 @@ class PuzzleEntry extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        if (puzzle.status == StatusNumber.completed || puzzle.status == StatusNumber.shared) {
+        if (puzzle.status == StatusNumber.completed || puzzle.status == StatusNumber.shared || puzzle.source == SourceNumber.share) {
           // パズルのステータスが completed または shared の場合、ダイアログを表示
           return AlertDialog(
             title: Text("パズルをシェア"),

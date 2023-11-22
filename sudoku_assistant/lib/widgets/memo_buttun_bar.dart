@@ -27,78 +27,90 @@ class MemoButtonBarState extends State<MemoButtonBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // 元に戻すボタン
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            InkWell(
-              onTap: () {
-                // 元に戻す機能をここに書く
-                widget.onUndo();
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.undo),
-                    onPressed: null, // IconButtonのonPressedはnullに設定
-                  ),
-                  Text(AppLocalizations.of(context)!.undo),
-                ],
-              ),
-            ),
-          ],
-        ),
-        // 消すボタン
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            InkWell(
-              onTap: () {
-                // 消しゴムの機能をここに書く
-                widget.onCellDelete();
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: null, // IconButtonのonPressedはnullに設定
-                  ),
-                  Text(AppLocalizations.of(context)!.erase),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return Column(
+      children:[
         // Memoボタン
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            InkWell(
-              onTap: () => _handleMemoTap(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      isMemoMode ? Icons.edit : Icons.edit_off, // メモがオンのときはeditアイコン、オフのときはedit_offアイコン
-                      color: isMemoMode ? Colors.blue : null, // メモがオンのときは青色
-                    ),
-                    onPressed: null, // IconButtonのonPressedはnullに設定
-                    iconSize: 40.0, // アイコンのサイズを大きく設定
-                  ),
-                  Text(AppLocalizations.of(context)!.memo),
-                ],
-              ),
-            ),
-          ],
+// Memoボタン
+InkWell(
+  onTap: () => _handleMemoTap(),
+  child: Container(
+    padding: EdgeInsets.all(8.0), // パディングを追加
+    decoration: BoxDecoration(
+      color: isMemoMode ? Colors.blueAccent: Colors.grey[200], // 背景色を設定
+      borderRadius: BorderRadius.circular(10), // 角を丸くする
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          isMemoMode ? Icons.edit : Icons.edit_off, // メモがオンのときはeditアイコン、オフのときはedit_offアイコン
+          color: isMemoMode ? Colors.white : null, // メモがオンのときは青色
+          size: 40.0, // アイコンのサイズを設定
+        ),
+        SizedBox(width: 8.0), // アイコンとテキストの間にスペースを追加
+        Text(
+          isMemoMode ? "memo mode ON" : "memo mode OFF",
+          style: TextStyle(
+            fontSize: 30.0, // テキストのサイズを設定
+            color: isMemoMode ? Colors.white : null, // メモがオンのときは青色
+          ),
         ),
       ],
-    );
+    ),
+  ),
+),
 
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            // 元に戻すボタン
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    // 元に戻す機能をここに書く
+                    widget.onUndo();
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.undo),
+                        onPressed: null, // IconButtonのonPressedはnullに設定
+                      ),
+                      Text(AppLocalizations.of(context)!.undo),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // 消すボタン
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    // 消しゴムの機能をここに書く
+                    widget.onCellDelete();
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: null, // IconButtonのonPressedはnullに設定
+                      ),
+                      Text(AppLocalizations.of(context)!.erase),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+          ],
+        ),
+      ]
+    );
   }
 }

@@ -4,6 +4,8 @@ import 'package:sudoku_assistant/widgets/preview.dart';
 import 'package:sudoku_assistant/views/home_screen.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:flutter/services.dart';
+import 'package:sudoku_assistant/services/firebase_service.dart';
+import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
 
 class CompletedScreen extends StatefulWidget {
   final Puzzle puzzle;
@@ -20,10 +22,11 @@ class CompletedScreen extends StatefulWidget {
 
 class CompletedScreenState extends State<CompletedScreen> {
   Puzzle? updatePazzule;
+  final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
+
   @override
   void initState(){
     super.initState();
-    print(widget.playingData.id);
   }
   void _handleUpdatePuzzle(Puzzle puzzle) async {
     // LocalStorageServiceのインスタンスを取得
@@ -35,24 +38,10 @@ class CompletedScreenState extends State<CompletedScreen> {
   }
   Future<Puzzle> _handleGetShareCode(Puzzle puzzle) async {
     try {
-      // Firebaseからデータを取得する非同期処理
-      // 例: Firestoreからデータを取得する場合
-      // var snapshot = await FirebaseFirestore.instance.collection('puzzles').doc(puzzle.id).get();
-      // var data = snapshot.data();
-      
-      // データ取得後の処理
-      // var sharedCode = data['sharedCode'];
-      var sharedCode = "eightLen"; // データから取得した共有コードに置き換える
-      
-      Puzzle updatedPuzzle = Puzzle(
-        id: puzzle.id,
-        grid: puzzle.grid,
-        name: puzzle.name,
-        status: puzzle.status,
-        creationDate: puzzle.creationDate,
-        sharedCode: sharedCode, // データから取得した共有コードに置き換える
-        source: puzzle.source,
-      );
+      Puzzle? updatedPuzzle = await firebasePuzzleController.addPuzzle(puzzle);
+      if (updatedPuzzle == null) {
+        return puzzle;
+      }
       
       _handleUpdatePuzzle(updatedPuzzle);
       return updatedPuzzle;
@@ -91,7 +80,17 @@ class CompletedScreenState extends State<CompletedScreen> {
               onPressed: () async {
                 // 非同期操作の前にScaffoldMessengerを取得
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
-
+                if (widget.puzzle.sharedCode != null) {
+                  // 共有コードがすでにある場合は、そのままクリップボードにコピーする
+                  Clipboard.setData(ClipboardData(text: widget.puzzle.sharedCode!));
+                  // 非同期操作後にScaffoldMessengerを使用
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text("共有コード:${widget.puzzle.sharedCode}をコピーしました"),
+                    ),
+                  );
+                  return;
+                }
                 updatePazzule = await _handleGetShareCode(widget.puzzle);
 
                 // 共有コードをクリップボードにコピーするロジック

@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/widgets/pazzule_list.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
+import 'package:sudoku_assistant/services/firebase_service.dart';
+import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
 
-enum PuzzleFilter { all, created, shared }
-
+enum SourceFilter { all, created, shared }
+enum StatusFilter { all, none, completed, shared }
 class PuzzleLibraryScreen extends StatefulWidget {
   @override
   _PuzzleLibraryScreenState createState() => _PuzzleLibraryScreenState();
 }
 
 class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
-  PuzzleFilter _selectedFilter = PuzzleFilter.all;
+  SourceFilter _selectedSourceFilter = SourceFilter.all;
+  StatusFilter _selectedStatusFilter = StatusFilter.all;
   List<Puzzle> puzzles = []; // This should be populated with your puzzle data
+  final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
 
   @override
   void initState() {
@@ -28,7 +32,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
     List<Puzzle> puzzles = await localStorageService.getPuzzles();
 
     // puzzlesをcreationDateに基づいて新しい順に並べ替える
-    puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
+    puzzles.sort((a, b) => b.id!.compareTo(a.id!));
 
     // 状態を更新するためにsetStateを呼び出す必要がある場合は、ここで行う
     setState(() {
@@ -40,20 +44,29 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
 
   
   List<Puzzle> _getFilteredPuzzles() {
-    // Implement your filter logic here based on _selectedFilter
-    // For now, it just returns all puzzles
+    // puzzlesが空の場合、初期化する
     if (puzzles.isEmpty) {
       _getFPuzzles();
     }
-    if (_selectedFilter == PuzzleFilter.all) {
-      return puzzles;
-    } else if (_selectedFilter == PuzzleFilter.created) {
-      return puzzles.where((puzzle) => puzzle.source == SourceNumber.created).toList();
-    } else if (_selectedFilter == PuzzleFilter.shared) {
-      return puzzles.where((puzzle) => puzzle.source == SourceNumber.share).toList();
-    }
-    return puzzles;
+
+    return puzzles.where((puzzle) {
+      // ソースフィルタの条件
+      bool sourceFilterPassed = _selectedSourceFilter == SourceFilter.all ||
+                                (_selectedSourceFilter == SourceFilter.created && puzzle.source == SourceNumber.created) ||
+                                (_selectedSourceFilter == SourceFilter.shared && puzzle.source == SourceNumber.share);
+
+      // ステータスフィルタの条件
+      bool statusFilterPassed = _selectedStatusFilter == StatusFilter.all ||
+                                (_selectedStatusFilter == StatusFilter.none && puzzle.status == StatusNumber.none) ||
+                                (_selectedStatusFilter == StatusFilter.completed && puzzle.status == StatusNumber.completed) ||
+                                (_selectedStatusFilter == StatusFilter.shared && puzzle.status == StatusNumber.shared);
+
+      // 両方のフィルタを満たすかどうか
+      return sourceFilterPassed && statusFilterPassed;
+    }).toList();
   }
+
+
 
   void _handleUpdatePuzzle(Puzzle puzzle) async {
     // LocalStorageServiceのインスタンスを取得
@@ -69,24 +82,10 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
 
   Future<Puzzle> _handleGetShareCode(Puzzle puzzle) async {
     try {
-      // Firebaseからデータを取得する非同期処理
-      // 例: Firestoreからデータを取得する場合
-      // var snapshot = await FirebaseFirestore.instance.collection('puzzles').doc(puzzle.id).get();
-      // var data = snapshot.data();
-      
-      // データ取得後の処理
-      // var sharedCode = data['sharedCode'];
-      var sharedCode = "eightLen"; // データから取得した共有コードに置き換える
-      
-      Puzzle updatedPuzzle = Puzzle(
-        id: puzzle.id,
-        grid: puzzle.grid,
-        name: puzzle.name,
-        status: puzzle.status,
-        creationDate: puzzle.creationDate,
-        sharedCode: sharedCode, // データから取得した共有コードに置き換える
-        source: puzzle.source,
-      );
+      Puzzle? updatedPuzzle = await firebasePuzzleController.addPuzzle(puzzle);
+      if (updatedPuzzle == null) {
+        return puzzle;
+      }
       
       _handleUpdatePuzzle(updatedPuzzle);
       return updatedPuzzle;
@@ -97,17 +96,18 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
     }
   }
 
-  Future<PlayingData> _handleGetByPuzzuleId(int id) async {
+  Future<PlayingData> _handleGetPlayingDataByPuzzuleId(int id) async {
     // LocalStorageServiceのインスタンスを取得
     LocalStorageService localStorageService = LocalStorageService();
     // getPuzzlesメソッドを呼び出してパズルをデータベースから取得
-    var playingData = await localStorageService.getPlayingDataByPuzzleId(id);
+    var playingData = await localStorageService.getPlayingDataIsPlayingByPuzzleId(id);
     if (playingData.isEmpty) {
       return PlayingData(
         id: null,
         currentGrid: List.generate(9, (_) => List.filled(9, 0)),
       );
     }
+    playingData.sort((a, b) => b.id!.compareTo(a.id!));
     return playingData.first;
   }
 
@@ -128,7 +128,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
               itemBuilder: (context, index) {
                 return PuzzleEntry(
                   puzzle: filteredPuzzles[index],
-                  onGetByPuzzuleId: _handleGetByPuzzuleId,
+                  onGetByPuzzuleId: _handleGetPlayingDataByPuzzuleId,
                   onShare: _handleGetShareCode,
                   );
               },
@@ -140,29 +140,57 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
   }
 
   Widget _buildFilterButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: PuzzleFilter.values.map((filter) {
-        final isSelected = filter == _selectedFilter;
-        return ElevatedButton(
-          onPressed: () {
-            setState(() {
-              _selectedFilter = filter;
-            });
-          },
-          style: ButtonStyle(
-            backgroundColor: isSelected
-                ? MaterialStateProperty.all<Color>(Colors.blue) // 選択されたボタンの背景色
-                : MaterialStateProperty.all<Color>(Colors.white), // 選択されていないボタンの背景色
-          ),
-          child: Text(
-            filter.toString().split('.').last,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black, // テキストの色
-            ),
-          ),
-        );
-      }).toList(),
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: SourceFilter.values.map((filter) {
+            final isSelected = filter == _selectedSourceFilter;
+            return ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedSourceFilter = filter;
+                });
+              },
+              style: ButtonStyle(
+                backgroundColor: isSelected
+                    ? MaterialStateProperty.all<Color>(Colors.blue) // 選択されたボタンの背景色
+                    : MaterialStateProperty.all<Color>(Colors.white), // 選択されていないボタンの背景色
+              ),
+              child: Text(
+                filter.toString().split('.').last,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black, // テキストの色
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: StatusFilter.values.map((filter) {
+            final isSelected = filter == _selectedStatusFilter;
+            return ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedStatusFilter = filter;
+                });
+              },
+              style: ButtonStyle(
+                backgroundColor: isSelected
+                    ? MaterialStateProperty.all<Color>(Colors.blue) // 選択されたボタンの背景色
+                    : MaterialStateProperty.all<Color>(Colors.white), // 選択されていないボタンの背景色
+              ),
+              child: Text(
+                filter.toString().split('.').last,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.black, // テキストの色
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 

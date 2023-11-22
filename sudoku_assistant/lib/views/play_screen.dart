@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:sudoku_assistant/controllers/puzzle_controller.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
@@ -30,6 +30,12 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
   void initState() {
     super.initState();
     initializePlayingData();
+  }
+  // プレイ中に終了した場合、プレイ中のデータを保存する
+  @override
+  void dispose() {
+    _savePuzzle();
+    super.dispose();
   }
 
   Future<void> initializePlayingData() async {
@@ -79,7 +85,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
   }
 
 
-  Future<void> _savePuzzle() async {
+  Future<Puzzle> _savePuzzle() async {
     // LocalStorageServiceのインスタンスを取得
     LocalStorageService localStorageService = LocalStorageService();
     if (_puzzleController.isCompleted) {
@@ -105,6 +111,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
       );
       await localStorageService.updatePlayingData(draftPlayingData);
       playingData = draftPlayingData;
+      return puzzle;
     } else {
       PlayingData draftPlayingData = PlayingData(
         id: playingData.id,
@@ -117,6 +124,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
       // updatePuzzleメソッドを呼び出してパズルをデータベースに保存
       await localStorageService.updatePlayingData(draftPlayingData);
       playingData = draftPlayingData;
+      return widget.puzzle;
     }
   }
   
@@ -124,14 +132,14 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
     _puzzleController.handleCellTap(x, y);
     setState(() {}); // Refresh the UI with the updated grid state
     if (_puzzleController.isCompleted) {
-      await _savePuzzle();
+      Puzzle savedPazzule = await _savePuzzle();
       // 非同期処理後にBuildContextがまだ有効かを確認
       if (!mounted) return;
       // パズルが完了したら画面遷移
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => CompletedScreen(
-          puzzle: widget.puzzle,
+          puzzle: savedPazzule,
           playingData: playingData,
           )
         ) 
@@ -150,14 +158,14 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
     setState(()  {
     });
       if (_puzzleController.isCompleted) {
-        await _savePuzzle();
+        Puzzle savedPazzule = await _savePuzzle();
         // 非同期処理後にBuildContextがまだ有効かを確認
         if (!mounted) return;
         // パズルが完了したら画面遷移
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => CompletedScreen(
-            puzzle: widget.puzzle,
+            puzzle: savedPazzule,
             playingData: playingData,
             )
           ) 
@@ -208,7 +216,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
     double gridMarginTop = MediaQuery.of(context).size.height * 0.01; // 1% of the screen height
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.generate_sudoku),
+        title: Text("Play Puzzle"),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {

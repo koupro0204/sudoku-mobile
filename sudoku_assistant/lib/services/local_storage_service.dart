@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
+import 'package:sudoku_assistant/models/firebase_puzzle.dart';
 
 class LocalStorageService {
   // Static database variable
@@ -28,7 +29,7 @@ class LocalStorageService {
     String path = join(documentDirectory, 'sudokuAssistant.db');
     return await openDatabase(
       path,
-      version: 6, // バージョン番号を増やす
+      version: 8, // バージョン番号を増やす
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // アップグレードのコールバックを追加
     );
@@ -68,11 +69,29 @@ class LocalStorageService {
     }
     if (oldVersion < 3) {
       // バージョン2からバージョン3にアップグレードするためのスキーマ変更
-      await db.execute('ALTER TABLE playing_data ADD COLUMN memoGrid TEXT');
+      await db.execute('ALTER TABLE puzzles ADD COLUMN memoGrid TEXT');
     }
-    if (oldVersion <67) {
-      // playing_data テーブルからすべてのデータを削除
-      await db.execute('DELETE FROM playing_data');
+    if (oldVersion <7) {
+      // バージョン6からバージョン7にアップグレードするためのスキーマ変更
+      // firebase_dataテーブルを追加
+      // name grid 保存するか考える
+      await db.execute('''
+      CREATE TABLE firebase_data(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebaseId TEXT,
+        puzzleId INTEGER,
+        grid TEXT,
+        name TEXT,
+        sharedCode TEXT,
+        completedPlayer INTEGER,
+        numberOfPlayer INTEGER,
+        FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
+      )
+    ''');
+    }
+    if (oldVersion < 8) {
+      // バージョン7からバージョン8にアップグレードするためのスキーマ変更
+      await db.execute('ALTER TABLE firebase_data ADD COLUMN creationDate TEXT');
     }
     // バージョンごとに必要なアップグレード手順を追加します。
   }
@@ -93,6 +112,14 @@ class LocalStorageService {
   Future<Puzzle> getPuzzleById(int id) async {
     final db = await _getDatabase();
     final List<Map<String, dynamic>> maps = await db.query('puzzles', where: 'id = ?', whereArgs: [id]);
+    return Puzzle.fromMap(maps.first);
+  }
+  Future<Puzzle?> getPuzzleBySharedCord(String sharedCode) async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('puzzles', where: 'sharedCode = ?', whereArgs: [sharedCode]);
+    if (maps.isEmpty) {
+      return null;
+    }
     return Puzzle.fromMap(maps.first);
   }
 
@@ -128,6 +155,15 @@ class LocalStorageService {
     final List<Map<String, dynamic>> maps = await db.query('playing_data', where: 'puzzleId = ?', whereArgs: [puzzleId]);
     return List.generate(maps.length, (i) => PlayingData.fromMap(maps[i]));
   }
+  Future<List<PlayingData>> getPlayingDataIsPlayingByPuzzleId(int puzzleId) async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query(
+      'playing_data',
+      where: 'status = ? AND puzzleId = ?',
+      whereArgs: [PlayStatusNumber.playing, puzzleId]
+    );
+    return List.generate(maps.length, (i) => PlayingData.fromMap(maps[i]));
+  }
   Future<List<PlayingData>> getPlayingDataIsPlaying() async {
     final db = await _getDatabase();
     final List<Map<String, dynamic>> maps = await db.query('playing_data', where: 'status = ?', whereArgs: [PlayStatusNumber.playing]);
@@ -151,6 +187,35 @@ class LocalStorageService {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  // firebase_dataのCRUD操作
+  Future<int> insertFirebaseData(FirebasePuzzle firebasePuzzle) async {
+    final db = await _getDatabase();
+    return db.insert('firebase_data', firebasePuzzle.toMap());
+  }
+  Future<List<FirebasePuzzle>> getFirebaseData() async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('firebase_data');
+    return List.generate(maps.length, (i) => FirebasePuzzle.fromMap(maps[i]));
+  }
+  // update
+  Future<int> updateFirebaseData(FirebasePuzzle firebasePuzzle) async {
+    final db = await _getDatabase();
+    return db.update(
+      'firebase_data',
+      firebasePuzzle.toMap(),
+      where: 'id = ?',
+      whereArgs: [firebasePuzzle.id],
+    );
+  }
+  Future<FirebasePuzzle?> getFirebaseDataBySharedCord(String sharedCode) async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('firebase_data', where: 'sharedCode = ?', whereArgs: [sharedCode]);
+    if (maps.isEmpty) {
+      return null;
+    }
+    return FirebasePuzzle.fromMap(maps.first);
   }
 
 }

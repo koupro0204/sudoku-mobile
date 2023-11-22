@@ -31,7 +31,8 @@ dependencies:
   flutter:
     sdk: flutter
   sqflite: ^2.0.0  # Add the version that is current at your time of implementation
-  firebase_core: ^1.0.3
+  firebase_core: ^2.2.0
+  firebase_database: ^10.3.4
   path_provider: ^2.0.1
   path: ^1.8.0
   # The following adds the Cupertino Icons font to your application.
