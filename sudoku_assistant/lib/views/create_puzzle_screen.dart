@@ -249,6 +249,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
             child: Center( // Center is added to center the Container
               child: SizedBox(
                 width: gridWidth, // Set the width of the Container
+                height: gridWidth,
                 child: SudokuGrid(
                   onCellTap: _handleCellTap,
                   selectedNumber: _puzzleController.selectedNumber,
@@ -281,6 +282,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
             onPreview: _handlePreview,
             isInvalid: isInvalid,
           ),
+          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
         ],
       ),
     );
