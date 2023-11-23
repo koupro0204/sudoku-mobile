@@ -96,6 +96,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
         name: widget.puzzle.name,
         grid: widget.puzzle.grid,
         creationDate: widget.puzzle.creationDate,
+        sharedCode: widget.puzzle.sharedCode,
         status: _puzzleController.isCompleted ? StatusNumber.completed : StatusNumber.none,
         source: widget.puzzle.source,
       );
@@ -207,6 +208,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
       elapsedTime = newElapsedTime;
     });
   }
+
 
 
   @override

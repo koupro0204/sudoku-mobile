@@ -185,32 +185,38 @@ void _showPreviewDialog(BuildContext context) {
                   ],
                 ),
               ),
-              actions: <Widget>[ puzzle.source == SourceNumber.share || puzzle.status == StatusNumber.shared? 
-              Container():
-                TextButton(
-                  child: Text("edit"),
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => CreatePuzzleScreen(puzzle: puzzle,)),
-                    );
-                  },
-                ),
-                TextButton(
-                  child: Text("close"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: Text("play"),
-                  onPressed: () {
-                    // 問題画面に遷移する
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => PlayPuzzleScreen(puzzle: puzzle, playingData: playingData,)),
-                    );
-                  },
+              actions: <Widget>[ 
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    puzzle.source == SourceNumber.share || puzzle.status == StatusNumber.shared? 
+                    Container():
+                    TextButton(
+                      child: Text("edit"),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => CreatePuzzleScreen(puzzle: puzzle,)),
+                        );
+                      },
+                    ),
+                    TextButton(
+                      child: Text("close"),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text("play"),
+                      onPressed: () {
+                        // 問題画面に遷移する
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => PlayPuzzleScreen(puzzle: puzzle, playingData: playingData,)),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             );

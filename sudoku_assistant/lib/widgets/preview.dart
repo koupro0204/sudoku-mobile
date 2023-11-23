@@ -46,8 +46,6 @@ class PreviewGrid extends StatelessWidget {
             ? currentStateNumber.toString()
             : number != 0 ? number.toString() : '';
 
-
-
         return Container(
           decoration: BoxDecoration(
             border: Border(

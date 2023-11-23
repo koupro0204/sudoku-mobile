@@ -60,20 +60,7 @@ class FirebasePuzzleController {
     var loadedPuzzle = await _firebasePuzzleService.getFirebasePuzzleBySharedCord(sharedCode);
     firebasePuzzleNotifier.value = loadedPuzzle;
   }
-  // すでにデータが存在する場合
-  // UI側でデータを更新するか確認する。
-  // Future<FirebasePuzzle?> loadGetPuzzleBySharedCord(Puzzle puzzle) async {
-  //   try {
-  //     var loadedPuzzle = await _firebasePuzzleService.checkRecordExistsAndGetData(puzzle.grid);
-  //     firebasePuzzleNotifier.value = loadedPuzzle;
-  //     return loadedPuzzle;
-  //   } catch (e) {
-  //     // エラー処理
-  //     errorNotifier.value = "エラーが発生しました: $e";
-  //     return null;
-  //   }
-  // }
-  // // 受け取るデータを考える
+
   Future<Puzzle?> addPuzzle(Puzzle puzzle) async {
     var sharedCode = generateRandomString(8);
     bool isCheck = await _firebasePuzzleService.checkRecordExistsBySharedCord(sharedCode);
@@ -120,6 +107,7 @@ class FirebasePuzzleController {
       sharedCode: puzzle.sharedCode, // データから取得した共有コードに置き換える
       source: SourceNumber.share,
     );
+
     int puzzleId = await localStorageService.insertPuzzle(localPuzzle);
     localPuzzle = localPuzzle.copyWith(id: puzzleId);
     FirebasePuzzle firebasePuzzle = FirebasePuzzle(

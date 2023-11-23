@@ -4,9 +4,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:sudoku_assistant/views/home_screen.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensures plugin services are initialized
+  await MobileAds.instance.initialize();
   await Firebase.initializeApp(); // Initialize Firebase
   await LocalStorageService.initialize(); // Initialize local storage service
 
@@ -41,3 +43,7 @@ class SudokuAssistantApp extends StatelessWidget {
     );
   }
 }
+// settingsを作成する。
+// 利用規約、プライバシーポリシー
+// バージョン情報、言語設定、テーマカラー設定
+// アプリの評価、お問い合わせ、アプリのシェア

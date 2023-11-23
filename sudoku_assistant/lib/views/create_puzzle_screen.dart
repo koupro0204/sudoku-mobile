@@ -216,7 +216,6 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
                       playingData: PlayingData(
                         id: null,
                         currentGrid: createdPuzzle.grid,
-                        
                         )
                       )
                     ),
@@ -276,15 +275,12 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
             onNumberLock: _handleNumberLock,
             grid: _puzzleController.grid,
             isNumberLocked: _puzzleController.isNumberLocked,
-          ),
-          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
+          ), // Add a margin at the top of the grid (optional
           SaveButtonBar(
             onReset: _handleReset,
             onPreview: _handlePreview,
             isInvalid: isInvalid,
           ),
-          SizedBox(height: gridMarginTop), // Add a margin at the top of the grid (optional
-          // Add Preview and Save button implementations here
         ],
       ),
     );
