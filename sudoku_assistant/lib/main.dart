@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:sudoku_assistant/views/home_screen.dart';
+import 'package:sudoku_assistant/views/home_page_screen.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -39,7 +39,7 @@ class SudokuAssistantApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         scaffoldBackgroundColor: Colors.white.withOpacity(0.95),
       ),
-      home: const HomeScreen(), // The first screen displayed when the app is launched
+      home: MyHomePage(), // The first screen displayed when the app is launched
     );
   }
 }

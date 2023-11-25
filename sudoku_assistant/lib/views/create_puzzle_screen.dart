@@ -8,7 +8,7 @@ import 'package:sudoku_assistant/widgets/sudoku_grid.dart';
 import 'package:sudoku_assistant/widgets/memo_buttun_bar.dart';
 import 'package:sudoku_assistant/widgets/save_button.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
-import 'package:sudoku_assistant/views/home_screen.dart';
+import 'package:sudoku_assistant/views/top_screen.dart';
 import 'package:sudoku_assistant/views/play_screen.dart';
 class CreatePuzzleScreen extends StatefulWidget {
   final Puzzle? puzzle;
@@ -188,7 +188,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
                 // home_screenに戻る。
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  MaterialPageRoute(builder: (context) => const TopScreen()),
                   (Route<dynamic> route) => false,
                 );
               },
