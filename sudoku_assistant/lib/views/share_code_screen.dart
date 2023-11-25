@@ -45,7 +45,14 @@ Widget build(BuildContext context) {
         BannerAdWidget(adUnitId: "ca-app-pub-3940256099942544/6300978111"), // テスト用の広告ユニットID
       ],
     ),
-    body: Center(
+    body: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () { 
+        primaryFocus?.unfocus();
+        print("unfocus");
+      },
+      child:
+    Center(
       child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.7,
         child: Column(
@@ -127,7 +134,16 @@ Widget build(BuildContext context) {
             ),
             ElevatedButton(
               onPressed: () {
+                // キーボードを閉じる
+                FocusScope.of(context).unfocus();
                 String sharedCode = _controller.text;
+                if (sharedCode.isEmpty) {
+                  return;
+                }
+                if (sharedCode.length != 8) {
+                  firebasePuzzleController.errorNotifier.value = "Invalid shared code";
+                  return;
+                }
                 firebasePuzzleController.loadGetPuzzleBySharedCord(sharedCode);
               },
               child: const Text('Get Puzzle'),
@@ -136,6 +152,7 @@ Widget build(BuildContext context) {
           ],
         ),
       ),
+    )
     )
   );
 }
