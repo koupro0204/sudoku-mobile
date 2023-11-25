@@ -5,17 +5,15 @@ import 'package:sudoku_assistant/views/create_puzzle_screen.dart';
 import 'package:sudoku_assistant/views/play_screen.dart';
 import 'package:sudoku_assistant/views/share_code_screen.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
-import 'package:sudoku_assistant/widgets/bottomNavigationbar.dart';
-import 'package:sudoku_assistant/widgets/bannerAds.dart';
 import 'package:sudoku_assistant/controllers/rewarded_ad_manager.dart';
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key});
+class TopScreen extends StatefulWidget {
+  const TopScreen({Key? key});
 
   @override
-  HomeScreenState createState() => HomeScreenState();
+  TopScreenState createState() => TopScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class TopScreenState extends State<TopScreen> {
   Puzzle? lastPlayedPuzzle;
   final RewardedAdManager rewardedAdManager = RewardedAdManager();
 
@@ -48,13 +46,7 @@ class HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Sudoku Assistant'),
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomBottomNavigationBar(currentIndex: 0),
-          BannerAdWidget(adUnitId: "ca-app-pub-3940256099942544/6300978111"), // テスト用の広告ユニットID
-        ],
-      ),
+      
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
-import 'package:sudoku_assistant/views/home_screen.dart';
+import 'package:sudoku_assistant/views/top_screen.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:flutter/services.dart';
 import 'package:sudoku_assistant/services/firebase_service.dart';
@@ -117,7 +117,7 @@ class CompletedScreenState extends State<CompletedScreen> {
                 Navigator.pushReplacement(
                   context, 
                   MaterialPageRoute(
-                    builder: (context) => HomeScreen(),
+                    builder: (context) => TopScreen(),
                   ),);
               },
               child: Text('home'),

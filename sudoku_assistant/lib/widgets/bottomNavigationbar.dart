@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:sudoku_assistant/views/home_screen.dart';
+import 'package:sudoku_assistant/views/top_screen.dart';
 import 'package:sudoku_assistant/views/library_screen.dart';
 import 'package:sudoku_assistant/views/share_code_screen.dart';
 // import 'package:sudoku_assistant/views/ranking_screen.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
-
-  CustomBottomNavigationBar({required this.currentIndex});
+  final Function(int) onTap;
+  CustomBottomNavigationBar({
+    required this.currentIndex,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,34 +40,35 @@ class CustomBottomNavigationBar extends StatelessWidget {
       currentIndex: currentIndex,
       selectedItemColor: Colors.amber[800],
       unselectedItemColor: Colors.grey,
-      onTap: (int index) {
-        switch (index) {
-          case 0:
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false,
-            );
-            break;
-          case 1:
-            // RankingScreenへのナビゲーションロジック
-            break;
-          case 2:
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => PuzzleLibraryScreen()),
-              (Route<dynamic> route) => false,
-            );
-            break;
-          case 3:
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => EnterSharedCodeScreen()),
-              (Route<dynamic> route) => false,
-            );
-            break;
-        }
-      },
+      onTap: onTap(currentIndex),
+      // onTap: (int index) {
+      //   switch (index) {
+      //     case 0:
+      //       Navigator.pushAndRemoveUntil(
+      //         context,
+      //         MaterialPageRoute(builder: (context) => const HomeScreen()),
+      //         (Route<dynamic> route) => false,
+      //       );
+      //       break;
+      //     case 1:
+      //       // RankingScreenへのナビゲーションロジック
+      //       break;
+      //     case 2:
+      //       Navigator.pushAndRemoveUntil(
+      //         context,
+      //         MaterialPageRoute(builder: (context) => PuzzleLibraryScreen()),
+      //         (Route<dynamic> route) => false,
+      //       );
+      //       break;
+      //     case 3:
+      //       Navigator.pushAndRemoveUntil(
+      //         context,
+      //         MaterialPageRoute(builder: (context) => EnterSharedCodeScreen()),
+      //         (Route<dynamic> route) => false,
+      //       );
+      //       break;
+      //   }
+      // },
     );
   }
 }

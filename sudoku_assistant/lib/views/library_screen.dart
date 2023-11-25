@@ -4,8 +4,8 @@ import 'package:sudoku_assistant/widgets/pazzule_list.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/services/firebase_service.dart';
 import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
-import 'package:sudoku_assistant/widgets/bottomNavigationbar.dart';
-import 'package:sudoku_assistant/widgets/bannerAds.dart';
+
+
 enum SourceFilter { all, created, shared }
 enum StatusFilter { all, none, completed, shared }
 class PuzzleLibraryScreen extends StatefulWidget {
@@ -120,13 +120,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
       appBar: AppBar(
         title: Text('Puzzle Library'),
       ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CustomBottomNavigationBar(currentIndex: 2),
-          BannerAdWidget(adUnitId: "ca-app-pub-3940256099942544/6300978111"), // テスト用の広告ユニットID
-        ],
-      ),
+
       body: Column(
         children: [
           _buildFilterButtons(),

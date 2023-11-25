@@ -7,8 +7,8 @@ import 'package:sudoku_assistant/views/play_screen.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
 import 'package:sudoku_assistant/services/firebase_service.dart';
 import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
-import 'package:sudoku_assistant/widgets/bottomNavigationbar.dart';
-import 'package:sudoku_assistant/widgets/bannerAds.dart';
+
+
 class EnterSharedCodeScreen extends StatefulWidget {
   const EnterSharedCodeScreen({Key? key});
 
@@ -38,18 +38,11 @@ Widget build(BuildContext context) {
     appBar: AppBar(
       title: const Text('Enter Shared Code'),
     ),
-    bottomNavigationBar: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CustomBottomNavigationBar(currentIndex: 3),
-        BannerAdWidget(adUnitId: "ca-app-pub-3940256099942544/6300978111"), // テスト用の広告ユニットID
-      ],
-    ),
+
     body: GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () { 
         primaryFocus?.unfocus();
-        print("unfocus");
       },
       child:
     Center(
