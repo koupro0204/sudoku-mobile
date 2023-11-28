@@ -14,6 +14,7 @@ class PuzzleLibraryScreen extends StatefulWidget {
 }
 
 class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
+  bool _isLoaded = false;
   SourceFilter _selectedSourceFilter = SourceFilter.all;
   StatusFilter _selectedStatusFilter = StatusFilter.all;
   List<Puzzle> puzzles = []; // This should be populated with your puzzle data
@@ -22,6 +23,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
   @override
   void initState() {
     super.initState();
+    _isLoaded = false;
     _getFPuzzles();
   }
 
@@ -31,7 +33,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
 
     // getPuzzlesメソッドを非同期で呼び出し、結果を待つ
     List<Puzzle> puzzles = await localStorageService.getPuzzles();
-
+    _isLoaded = true;
     // puzzlesをcreationDateに基づいて新しい順に並べ替える
     puzzles.sort((a, b) => b.id!.compareTo(a.id!));
 
@@ -46,7 +48,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
   
   List<Puzzle> _getFilteredPuzzles() {
     // puzzlesが空の場合、初期化する
-    if (puzzles.isEmpty) {
+    if (puzzles.isEmpty && !_isLoaded) {
       _getFPuzzles();
     }
 

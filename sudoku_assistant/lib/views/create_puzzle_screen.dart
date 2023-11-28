@@ -3,12 +3,12 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:sudoku_assistant/controllers/create_puzzle_controller.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
+import 'package:sudoku_assistant/views/home_page_screen.dart';
 import 'package:sudoku_assistant/widgets/number_button_bar.dart';
 import 'package:sudoku_assistant/widgets/sudoku_grid.dart';
 import 'package:sudoku_assistant/widgets/memo_buttun_bar.dart';
 import 'package:sudoku_assistant/widgets/save_button.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
-import 'package:sudoku_assistant/views/top_screen.dart';
 import 'package:sudoku_assistant/views/play_screen.dart';
 class CreatePuzzleScreen extends StatefulWidget {
   final Puzzle? puzzle;
@@ -47,7 +47,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
     if (widget.puzzle != null) {
       if (name=='No Name') {
         if (widget.puzzle!.name=='No Name'){
-          name = 'No Name';
+          name = 'No444 Name';
         }else{
           name = widget.puzzle!.name;
         }
@@ -188,7 +188,7 @@ class CreatePuzzleScreenState extends State<CreatePuzzleScreen> {
                 // home_screenに戻る。
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => const TopScreen()),
+                  MaterialPageRoute(builder: (context) => MyHomePage()),
                   (Route<dynamic> route) => false,
                 );
               },

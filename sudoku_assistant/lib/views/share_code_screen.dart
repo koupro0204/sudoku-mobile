@@ -20,10 +20,11 @@ class EnterSharedCodeScreenState extends State<EnterSharedCodeScreen> {
   Puzzle? getPuzzle;
   // TextEditingControllerのインスタンスを作成
   final TextEditingController _controller = TextEditingController();
-  final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
+  FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
   @override
   void initState() {
     super.initState();
+    firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
   }
   @override
   void dispose() {
@@ -112,8 +113,18 @@ Widget build(BuildContext context) {
                     ],
                   );
                 } else {
-                  // FirebasePuzzleがnullの場合のウィジェットをここに記述
-                  return Text("No puzzle loaded");
+                  return ValueListenableBuilder<String?>(
+                    valueListenable: firebasePuzzleController.errorNotifier,
+                    builder: (context, error, child) {
+                      if (error != null) {
+                        // FirebasePuzzleが存在する場合のウィジェットをここに記述
+                        return Text("Error: $error");
+                      } else {
+                        // errorがnullの場合のElevatedButtonを表示
+                        return Text("No puzzle loaded");
+                      }
+                    }
+                  );
                 }
               },
             ),
@@ -137,6 +148,7 @@ Widget build(BuildContext context) {
                   firebasePuzzleController.errorNotifier.value = "Invalid shared code";
                   return;
                 }
+                
                 firebasePuzzleController.loadGetPuzzleBySharedCord(sharedCode);
               },
               child: const Text('Get Puzzle'),

@@ -8,9 +8,9 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensures plugin services are initialized
+  await LocalStorageService.initialize(); // Initialize local storage service
   await MobileAds.instance.initialize();
   await Firebase.initializeApp(); // Initialize Firebase
-  await LocalStorageService.initialize(); // Initialize local storage service
 
   runApp(const SudokuAssistantApp());
 }

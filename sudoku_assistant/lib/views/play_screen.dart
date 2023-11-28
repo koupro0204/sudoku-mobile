@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 // import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:sudoku_assistant/controllers/puzzle_controller.dart';
+import 'package:sudoku_assistant/services/firebase_service.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
+import 'package:sudoku_assistant/controllers/puzzle_controller.dart';
+import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
+import 'package:sudoku_assistant/views/home_page_screen.dart';
 import 'package:sudoku_assistant/widgets/number_button_bar.dart';
 import 'package:sudoku_assistant/widgets/sudoku_grid.dart';
 import 'package:sudoku_assistant/widgets/memo_buttun_bar.dart';
 import 'package:sudoku_assistant/widgets/top_bar.dart';
 import 'package:sudoku_assistant/views/completed_screen.dart';
-import 'package:sudoku_assistant/views/top_screen.dart';
 class PlayPuzzleScreen extends StatefulWidget {
   final Puzzle puzzle;
   final PlayingData playingData;
@@ -26,6 +28,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
   final PuzzleController _puzzleController = PuzzleController();
   late int elapsedTime;
   late PlayingData playingData;
+  bool isSaved = false;
   @override
   void initState() {
     super.initState();
@@ -34,7 +37,9 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
   // プレイ中に終了した場合、プレイ中のデータを保存する
   @override
   void dispose() {
-    _savePuzzle();
+    if (!isSaved) {
+      _savePuzzle();
+    }
     super.dispose();
   }
 
@@ -97,7 +102,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
         grid: widget.puzzle.grid,
         creationDate: widget.puzzle.creationDate,
         sharedCode: widget.puzzle.sharedCode,
-        status: _puzzleController.isCompleted ? StatusNumber.completed : StatusNumber.none,
+        status: StatusNumber.completed,
         source: widget.puzzle.source,
       );
       int _ = await localStorageService.updatePuzzle(puzzle);
@@ -112,6 +117,13 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
       );
       await localStorageService.updatePlayingData(draftPlayingData);
       playingData = draftPlayingData;
+
+      // パズルがシェアされている場合、FireBase上のパズル完了数を更新
+      if (widget.puzzle.source == SourceNumber.share && widget.puzzle.status == StatusNumber.none) {
+        FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
+        await firebasePuzzleController.updateCompletedOfPlayer(widget.puzzle.sharedCode!);
+        isSaved = true;
+      }
       return puzzle;
     } else {
       PlayingData draftPlayingData = PlayingData(
@@ -227,7 +239,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
             // home_screen.dartに遷移
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => const TopScreen()),
+              MaterialPageRoute(builder: (context) => MyHomePage()),
               (Route<dynamic> route) => false,
             );
           },

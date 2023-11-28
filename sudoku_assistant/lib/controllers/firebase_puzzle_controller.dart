@@ -42,6 +42,9 @@ class FirebasePuzzleController {
   //   }
   // }
   Future<void> loadGetPuzzleBySharedCord(String sharedCode) async {
+      errorNotifier.value = null;
+      isSaveNotifier.value = false;
+      firebasePuzzleNotifier.value = null;
     // ローカルにsharedCodeを持っているものがあるときは、それを渡す。
     LocalStorageService localStorageService = LocalStorageService();
     Puzzle? localPuzzle = await localStorageService.getPuzzleBySharedCord(sharedCode);
@@ -58,6 +61,9 @@ class FirebasePuzzleController {
       return;
     }
     var loadedPuzzle = await _firebasePuzzleService.getFirebasePuzzleBySharedCord(sharedCode);
+    if (loadedPuzzle == null) {
+      errorNotifier.value = "エラーが発生しました: データがありません。";
+    }
     firebasePuzzleNotifier.value = loadedPuzzle;
   }
 
@@ -89,6 +95,7 @@ class FirebasePuzzleController {
       );
       LocalStorageService localStorageService = LocalStorageService();
       await localStorageService.updatePuzzle(updatePuzzle);
+      await localStorageService.insertFirebaseData(firebasePuzzle);
       firebasePuzzleNotifier.value = firebasePuzzle;
       return updatePuzzle;
     } catch (e) {
@@ -127,6 +134,27 @@ class FirebasePuzzleController {
     isSaveNotifier.value = true;
 
     firebasePuzzleNotifier.value = firebasePuzzle;
+  }
+
+  Future<void> updateCompletedOfPlayer(String sharedCode) async {
+    LocalStorageService localStorageService = LocalStorageService();
+    FirebasePuzzle? localFirebasePuzzle = await localStorageService.getFirebaseDataBySharedCord(sharedCode);
+    if (localFirebasePuzzle == null) {
+      errorNotifier.value = "エラーが発生しました: データがありません。";
+      return;
+    }
+    try {
+      FirebasePuzzle? updatedFirebasePuzzle =await _firebasePuzzleService.updateCompletedOfPlayer(localFirebasePuzzle);
+      if (updatedFirebasePuzzle == null) {
+        errorNotifier.value = "エラーが発生しました: データがありません。";
+        return;
+      }
+      await localStorageService.updateFirebaseData(updatedFirebasePuzzle);
+    } catch (e) {
+      // エラー処理
+      errorNotifier.value = "エラーが発生しました: $e";
+    }
+
   }
 
   Future<void> updatePuzzle(FirebasePuzzle puzzle) async {

@@ -27,9 +27,11 @@ class LocalStorageService {
   static Future<Database> _initDatabase() async {
     var documentDirectory = await getDatabasesPath();
     String path = join(documentDirectory, 'sudokuAssistant.db');
+    // データベースファイルを削除
+    // await deleteDatabase(path);
     return await openDatabase(
       path,
-      version: 8, // バージョン番号を増やす
+      version: 2, // バージョン番号を増やす
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // アップグレードのコールバックを追加
     );
@@ -40,6 +42,7 @@ class LocalStorageService {
   }
   // Define the database schema
   static Future _onCreate(Database db, int version) async {
+
     await db.execute('''
       CREATE TABLE puzzles(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,35 +50,23 @@ class LocalStorageService {
         name TEXT,
         status INTEGER,
         creationDate TEXT,
+        memoGrid TEXT,
         sharedCode TEXT,
-        source INTEGER,
-        memoGrid TEXT
+        source INTEGER
       )
     ''');
-      await db.execute('''
+    await db.execute('''
       CREATE TABLE playing_data(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         puzzleId INTEGER,
         currentGrid TEXT,
         time INTEGER,
+        status INTEGER,
+        memoGrid TEXT,
         FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
       )
     ''');
-  }
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // バージョン1からバージョン2にアップグレードするためのスキーマ変更
-      await db.execute('ALTER TABLE playing_data ADD COLUMN status INTEGER');
-    }
-    if (oldVersion < 3) {
-      // バージョン2からバージョン3にアップグレードするためのスキーマ変更
-      await db.execute('ALTER TABLE puzzles ADD COLUMN memoGrid TEXT');
-    }
-    if (oldVersion <7) {
-      // バージョン6からバージョン7にアップグレードするためのスキーマ変更
-      // firebase_dataテーブルを追加
-      // name grid 保存するか考える
-      await db.execute('''
+    await db.execute('''
       CREATE TABLE firebase_data(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         firebaseId TEXT,
@@ -85,14 +76,17 @@ class LocalStorageService {
         sharedCode TEXT,
         completedPlayer INTEGER,
         numberOfPlayer INTEGER,
+        creationDate TEXT,
         FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
       )
     ''');
-    }
-    if (oldVersion < 8) {
-      // バージョン7からバージョン8にアップグレードするためのスキーマ変更
-      await db.execute('ALTER TABLE firebase_data ADD COLUMN creationDate TEXT');
-    }
+  }
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // データベーススキーマの変更（テーブルの追加、列の追加、データの移行など）を行うため
+    // if (oldVersion < 2) {
+    //   // バージョン7からバージョン8にアップグレードするためのスキーマ変更
+    //   await db.execute('ALTER TABLE firebase_data ADD COLUMN creationDate TEXT');
+    // }
     // バージョンごとに必要なアップグレード手順を追加します。
   }
 
@@ -201,6 +195,7 @@ class LocalStorageService {
   }
   // update
   Future<int> updateFirebaseData(FirebasePuzzle firebasePuzzle) async {
+    print("updateFirebaseData firebasePuzzle localStroageService");
     final db = await _getDatabase();
     return db.update(
       'firebase_data',

@@ -74,6 +74,7 @@ class Puzzle {
   }
   // Convert a Map into a Puzzle instance
   factory Puzzle.fromMap(Map<String, dynamic> map) {
+
     return Puzzle(
       id: map['id'],
       grid: (jsonDecode(map['grid']) as List<dynamic>)
@@ -81,10 +82,10 @@ class Puzzle {
           .map((row) => row.map((cell) => cell as int).toList())
           .toList(),
       name: map['name'],
-      status: map['status'],
       creationDate: DateTime.parse(map['creationDate']),
       sharedCode: map['sharedCode'],
-      source: map['source'],
+      status: map['status'] ?? StatusNumber.none,
+      source: map['source'] ?? SourceNumber.created,
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/views/create_puzzle_screen.dart';
 import 'package:sudoku_assistant/views/play_screen.dart';
-import 'package:sudoku_assistant/views/share_code_screen.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
 import 'package:sudoku_assistant/controllers/rewarded_ad_manager.dart';
 class TopScreen extends StatefulWidget {
@@ -124,31 +123,20 @@ class TopScreenState extends State<TopScreen> {
                       ),
                       // ElevatedButton(
                       //   onPressed: () {
+                      //     // indicate widget for entering shared code
+                      //     // or
+                      //     // Navigate to the Enter Shared Code Screen
+                      //     // text box dialog
                       //     Navigator.push(
                       //       context,
                       //       MaterialPageRoute(
-                      //         builder: (context) => PuzzleLibraryScreen(),
+                      //         builder: (context) => EnterSharedCodeScreen(),
                       //       ),
                       //     );
-                      //   },
-                      //   child: const Text('Puzzle Library'),
-                      // ),
-                      ElevatedButton(
-                        onPressed: () {
-                          // indicate widget for entering shared code
-                          // or
-                          // Navigate to the Enter Shared Code Screen
-                          // text box dialog
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EnterSharedCodeScreen(),
-                            ),
-                          );
 
-                        },
-                        child: const Text('Enter Shared Code'),
-                      ),
+                      //   },
+                      //   child: const Text('Enter Shared Code'),
+                      // ),
                     ],
                   );
                 }

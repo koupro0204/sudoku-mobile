@@ -3,6 +3,8 @@ import 'package:sudoku_assistant/views/top_screen.dart';
 import 'package:sudoku_assistant/views/library_screen.dart';
 import 'package:sudoku_assistant/views/share_code_screen.dart';
 import 'package:sudoku_assistant/widgets/bannerAds.dart';
+import 'package:sudoku_assistant/views/ranking_screen.dart';
+
 class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -10,12 +12,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0; // 現在選択されているタブのインデックス
-
-  void _onItemTapped(int index) {
-    // setState(() {
-    // });
-      _selectedIndex = index; // タップされたタブのインデックスを更新
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +22,7 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           // ここにタブごとの画面ウィジェットを追加
           TopScreen(),  // インデックス0
-          TopScreen(), // インデックス1
+          RankingPage(), // インデックス1
           PuzzleLibraryScreen(), // インデックス2
           EnterSharedCodeScreen(), // インデックス3
         ],
