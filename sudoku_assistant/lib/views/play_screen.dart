@@ -120,7 +120,7 @@ class PlayPuzzleScreenState extends State<PlayPuzzleScreen> {
 
       // パズルがシェアされている場合、FireBase上のパズル完了数を更新
       if (widget.puzzle.source == SourceNumber.share && widget.puzzle.status == StatusNumber.none) {
-        FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
+        FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController();
         await firebasePuzzleController.updateCompletedOfPlayer(widget.puzzle.sharedCode!);
         isSaved = true;
       }

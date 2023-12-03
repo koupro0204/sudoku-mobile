@@ -18,7 +18,7 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
   SourceFilter _selectedSourceFilter = SourceFilter.all;
   StatusFilter _selectedStatusFilter = StatusFilter.all;
   List<Puzzle> puzzles = []; // This should be populated with your puzzle data
-  final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
+  final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController();
 
   @override
   void initState() {

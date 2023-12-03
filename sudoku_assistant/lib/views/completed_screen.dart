@@ -22,7 +22,7 @@ class CompletedScreen extends StatefulWidget {
 
 class CompletedScreenState extends State<CompletedScreen> {
   Puzzle? updatePazzule;
-  final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
+  final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController();
 
   @override
   void initState(){

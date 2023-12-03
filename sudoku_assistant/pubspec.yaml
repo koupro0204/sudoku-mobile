@@ -42,6 +42,7 @@ dependencies:
   flutter_localizations: # 多言語ライブラリの本体
     sdk: flutter  
   intl: "^0.18.1" # 多言語やフォーマッタなどの関連ライブラリ
+  shared_preferences: ^2.0.13 # データの永続化ライブラリ
 dev_dependencies:
   flutter_test:
     sdk: flutter

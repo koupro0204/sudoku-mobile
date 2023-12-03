@@ -80,6 +80,18 @@ class LocalStorageService {
         FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
       )
     ''');
+    // await db.execute('''
+    //   CREATE TABLE newest_firebase_data(
+    //     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    //     firebaseId TEXT,
+    //     grid TEXT,
+    //     name TEXT,
+    //     sharedCode TEXT,
+    //     completedPlayer INTEGER,
+    //     numberOfPlayer INTEGER,
+    //     creationDate TEXT,
+    //   )
+    // ''');
   }
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // データベーススキーマの変更（テーブルの追加、列の追加、データの移行など）を行うため

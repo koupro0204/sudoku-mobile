@@ -33,14 +33,12 @@ class FirebasePuzzleService {
     await ref.update(updatedPuzzle.toJson());
   }
 
-  Future<void> updateNumberOfPlayer(FirebasePuzzle puzzle) async {
-    print("updateNumberOfPlayer: ",);
-    print(puzzle.firebaseId!);
+  Future<bool> updateNumberOfPlayer(FirebasePuzzle puzzle) async {
+      print("updateNumberOfPlayer object");
     DatabaseReference ref = _ref.child(puzzle.firebaseId!);
-    await ref.runTransaction((Object? puzzleData) {
-      print("updateNumberOfPlayer object $puzzleData");
+    TransactionResult result = await ref.runTransaction((Object? puzzleData) {
       if (puzzleData == null) {
-        return Transaction.abort();
+        return Transaction.success(null);
       }
       // パズルデータをMap<dynamic, dynamic>にキャスト
       Map<dynamic, dynamic> puzzleMap = puzzleData as Map<dynamic, dynamic>;
@@ -51,12 +49,13 @@ class FirebasePuzzleService {
       // 更新したパズルデータを返す
       return Transaction.success(puzzleMap);
     });
+    return result.committed;
   }
   Future<FirebasePuzzle?> updateCompletedOfPlayer(FirebasePuzzle puzzle) async {
     DatabaseReference ref = _ref.child(puzzle.firebaseId!);
     await ref.runTransaction((Object? puzzleData) {
       if (puzzleData == null) {
-        return Transaction.abort();
+        return Transaction.success(null);
       }
       Map<dynamic, dynamic> puzzleMap = puzzleData as Map<dynamic, dynamic>;
 
@@ -117,16 +116,15 @@ class FirebasePuzzleService {
 
   Future<List<FirebasePuzzle>> getTopCompletedPuzzles(int limit) async {
     Query query = _ref.orderByChild("completedPlayer").limitToLast(limit);
-
-    DataSnapshot snapshot = await query.once() as DataSnapshot;
+    DataSnapshot snapshot = (await query.once()).snapshot;
     if (snapshot.value != null) {
-      // Map<Object?, Object?> を Map<String, dynamic> に安全にキャスト
-      Map<String, dynamic> puzzleMap = (snapshot.value as Map).cast<String, dynamic>();
+      // Firebaseから取得したデータをMap<String, dynamic>に変換
+      Map<String, dynamic> puzzleMap = Map<String, dynamic>.from(snapshot.value as Map).cast<String, dynamic>();
 
       List<FirebasePuzzle> puzzles = [];
       puzzleMap.forEach((key, value) {
-        // value を Map<String, dynamic> にキャスト
-        var puzzleData = value as Map<String, dynamic>;
+        // puzzleData = value.map((k, v) => MapEntry(k as String, v as dynamic));
+        Map<String, dynamic> puzzleData = Map<String, dynamic>.from(value as Map).cast<String, dynamic>();
         var puzzle = FirebasePuzzle.fromJson(key, puzzleData);
         puzzles.add(puzzle);
       });
@@ -140,23 +138,45 @@ class FirebasePuzzleService {
     }
   }
 
-  Future<List<FirebasePuzzle>> getTopPlayerPuzzles(int limit) async {
+  Future<List<FirebasePuzzle>> getNumnerOfPlayerPuzzles(int limit) async {
     Query query = _ref.orderByChild("numberOfPlayer").limitToLast(limit);
 
-    DataSnapshot snapshot = await query.once() as DataSnapshot;
+    DataSnapshot snapshot = (await query.once()).snapshot;
     if (snapshot.value != null) {
-      // Map<Object?, Object?> を Map<String, dynamic> に安全にキャスト
-      Map<String, dynamic> puzzleMap = (snapshot.value as Map).cast<String, dynamic>();
+      // Firebaseから取得したデータをMap<String, dynamic>に変換
+      Map<String, dynamic> puzzleMap = Map<String, dynamic>.from(snapshot.value as Map).cast<String, dynamic>();
 
       List<FirebasePuzzle> puzzles = [];
       puzzleMap.forEach((key, value) {
-        // value を Map<String, dynamic> にキャスト
-        var puzzleData = value as Map<String, dynamic>;
+        // puzzleData = value.map((k, v) => MapEntry(k as String, v as dynamic));
+        Map<String, dynamic> puzzleData = Map<String, dynamic>.from(value as Map).cast<String, dynamic>();
+        var puzzle = FirebasePuzzle.fromJson(key, puzzleData);
+        puzzles.add(puzzle);
+      });
+      puzzles.sort((a, b) => b.numberOfPlayer.compareTo(a.numberOfPlayer));
+      return puzzles;
+    } else {
+      return [];
+    }
+  }
+  Future<List<FirebasePuzzle>> getNewestPuzzles(int limit) async {
+    Query query = _ref.orderByChild("creationDate").limitToLast(limit);
+    DataSnapshot snapshot = (await query.once()).snapshot;
+    if (snapshot.value != null) {
+      // Firebaseから取得したデータをMap<String, dynamic>に変換
+      Map<String, dynamic> puzzleMap = Map<String, dynamic>.from(snapshot.value as Map).cast<String, dynamic>();
+
+      List<FirebasePuzzle> puzzles = [];
+      puzzleMap.forEach((key, value) {
+        // puzzleData = value.map((k, v) => MapEntry(k as String, v as dynamic));
+        Map<String, dynamic> puzzleData = Map<String, dynamic>.from(value as Map).cast<String, dynamic>();
         var puzzle = FirebasePuzzle.fromJson(key, puzzleData);
         puzzles.add(puzzle);
       });
 
-      puzzles.sort((a, b) => b.numberOfPlayer.compareTo(a.numberOfPlayer));
+      // 完了したプレイヤーの数に基づいてパズルをソート
+      puzzles.sort((a, b) => b.creationDate.compareTo(a.creationDate));
+
       return puzzles;
     } else {
       return [];

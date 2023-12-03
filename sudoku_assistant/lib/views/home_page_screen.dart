@@ -63,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
           ),
-          BannerAdWidget(adUnitId: "ca-app-pub-3940256099942544/6300978111"),
+          // BannerAdWidget(adUnitId: "ca-app-pub-3940256099942544/6300978111"),
         ],
       )
     );

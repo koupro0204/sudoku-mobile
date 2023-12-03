@@ -107,6 +107,25 @@ class TopScreenState extends State<TopScreen> {
                           },
                           child: const Text('Play This Puzzle'),
                         ),
+                        ElevatedButton(
+                          onPressed: () {
+                            LocalStorageService().deletePlayingData(snapshot.data!.playingData!.id!);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    PlayPuzzleScreen(
+                                      puzzle: snapshot.data!,
+                                      playingData: PlayingData(
+                                        id: null,
+                                        currentGrid: List.generate(9, (_) => List.filled(9, 0)),
+                                      )
+                                    ),
+                              ),
+                            );
+                          },
+                          child: const Text('restart This Puzzle'),
+                        ),
                       ],
                       ElevatedButton(
                         onPressed: () {

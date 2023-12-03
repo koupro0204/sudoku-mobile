@@ -6,30 +6,42 @@ import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 
 class FirebasePuzzleController {
-  final FirebasePuzzleService _firebasePuzzleService;
   ValueNotifier<List<FirebasePuzzle>> firebasePuzzles = ValueNotifier([]);
   ValueNotifier<String?> errorNotifier = ValueNotifier<String?>(null);
   ValueNotifier<bool> isSaveNotifier = ValueNotifier<bool>(false);
   ValueNotifier<FirebasePuzzle?> firebasePuzzleNotifier = ValueNotifier<FirebasePuzzle?>(null);
-  FirebasePuzzleController(this._firebasePuzzleService);
+  final FirebasePuzzleService _firebasePuzzleService = FirebasePuzzleService();
 
 
-  Future<void> loadTopPlayerPuzzles(int limit) async {
+  Future<List<FirebasePuzzle>> loadNumnerOfPlayerPuzzles(int limit) async {
     try {
-      var loadedPuzzles = await _firebasePuzzleService.getTopPlayerPuzzles(limit);
-      firebasePuzzles.value = loadedPuzzles;
+      var loadedPuzzles = await _firebasePuzzleService.getNumnerOfPlayerPuzzles(limit);
+      return loadedPuzzles;
     } catch (e) {
       // エラー処理
       errorNotifier.value = "エラーが発生しました: $e";
+      return [];
     }
   }
-  Future<void> loadTopCompletedPuzzles(int limit) async {
+  Future<List<FirebasePuzzle>> loadNewestPuzzles(int limit) async {
+    try {
+      var loadedPuzzles = await _firebasePuzzleService.getNewestPuzzles(limit);
+      return loadedPuzzles;
+    } catch (e) {
+      // エラー処理
+      errorNotifier.value = "エラーが発生しました: $e";
+      return [];
+    }
+  }
+  Future<List<FirebasePuzzle>> loadTopCompletedPuzzles(int limit) async {
     try {
       var loadedPuzzles = await _firebasePuzzleService.getTopCompletedPuzzles(limit);
       firebasePuzzles.value = loadedPuzzles;
+      return loadedPuzzles;
     } catch (e) {
       // エラー処理
       errorNotifier.value = "エラーが発生しました: $e";
+      return [];
     }
   }
   // Future<void> loadGetPuzzleById(int puzzleId) async {
@@ -130,7 +142,11 @@ class FirebasePuzzleController {
     );
     await localStorageService.insertFirebaseData(firebasePuzzle);
     // 保存したら、FirebaseのデータのNumberOfPlayerを更新する
-    await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
+    bool isCommitted = await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
+    // if (!isCommitted) {
+    //    await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
+    //   return;
+    // }
     isSaveNotifier.value = true;
 
     firebasePuzzleNotifier.value = firebasePuzzle;

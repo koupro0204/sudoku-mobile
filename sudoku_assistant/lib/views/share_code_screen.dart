@@ -20,11 +20,10 @@ class EnterSharedCodeScreenState extends State<EnterSharedCodeScreen> {
   Puzzle? getPuzzle;
   // TextEditingControllerのインスタンスを作成
   final TextEditingController _controller = TextEditingController();
-  FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
+  FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController();
   @override
   void initState() {
     super.initState();
-    firebasePuzzleController = FirebasePuzzleController(FirebasePuzzleService());
   }
   @override
   void dispose() {
