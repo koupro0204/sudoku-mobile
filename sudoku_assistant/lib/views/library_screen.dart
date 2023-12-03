@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/widgets/pazzule_list.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
-import 'package:sudoku_assistant/services/firebase_service.dart';
 import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
 
 

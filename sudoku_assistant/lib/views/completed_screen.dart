@@ -4,7 +4,6 @@ import 'package:sudoku_assistant/widgets/preview.dart';
 import 'package:sudoku_assistant/views/home_page_screen.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:flutter/services.dart';
-import 'package:sudoku_assistant/services/firebase_service.dart';
 import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
 
 class CompletedScreen extends StatefulWidget {

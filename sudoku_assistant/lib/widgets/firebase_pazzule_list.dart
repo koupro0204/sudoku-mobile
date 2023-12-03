@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sudoku_assistant/models/firebase_puzzle.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
-import 'package:sudoku_assistant/views/create_puzzle_screen.dart';
-import 'package:sudoku_assistant/views/play_screen.dart'; 
-import 'package:sudoku_assistant/widgets/preview.dart';
 import 'package:intl/intl.dart';
 
 class FirebasePuzzleEntry extends StatelessWidget {

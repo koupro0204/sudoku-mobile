@@ -5,7 +5,6 @@ import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/models/firebase_puzzle.dart';
 import 'package:sudoku_assistant/views/play_screen.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
-import 'package:sudoku_assistant/services/firebase_service.dart';
 import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
 
 

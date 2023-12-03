@@ -142,11 +142,8 @@ class FirebasePuzzleController {
     );
     await localStorageService.insertFirebaseData(firebasePuzzle);
     // 保存したら、FirebaseのデータのNumberOfPlayerを更新する
-    bool isCommitted = await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
-    // if (!isCommitted) {
-    //    await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
-    //   return;
-    // }
+    await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
+
     isSaveNotifier.value = true;
 
     firebasePuzzleNotifier.value = firebasePuzzle;

@@ -3,7 +3,6 @@ import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
 import 'package:sudoku_assistant/models/firebase_puzzle.dart';
 import 'package:sudoku_assistant/widgets/firebase_pazzule_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sudoku_assistant/services/firebase_service.dart';
 
 class RankingPage extends StatefulWidget {
   @override
