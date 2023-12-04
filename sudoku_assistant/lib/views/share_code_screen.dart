@@ -6,10 +6,15 @@ import 'package:sudoku_assistant/models/firebase_puzzle.dart';
 import 'package:sudoku_assistant/views/play_screen.dart';
 import 'package:sudoku_assistant/widgets/preview.dart';
 import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
+import 'package:sudoku_assistant/controllers/trigger_tab_contoroller.dart';
 
 
 class EnterSharedCodeScreen extends StatefulWidget {
-  const EnterSharedCodeScreen({Key? key});
+  final TriggerNotifierContoller triggerNotifierContoller;
+  const EnterSharedCodeScreen({
+    Key? key,
+    required this.triggerNotifierContoller,
+    });
 
   @override
   EnterSharedCodeScreenState createState() => EnterSharedCodeScreenState();
@@ -99,6 +104,7 @@ Widget build(BuildContext context) {
                                     return ElevatedButton(
                                       onPressed: (){
                                           firebasePuzzleController.insertFirebasePuzzleForLocal(firebasePuzzle);
+                                          widget.triggerNotifierContoller.isUpdateTriggerNotifier.value = true;
                                       },
                                       child: const Text('save to local storage')
                                     );

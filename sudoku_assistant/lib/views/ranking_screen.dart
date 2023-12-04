@@ -5,7 +5,13 @@ import 'package:sudoku_assistant/widgets/firebase_pazzule_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
+import 'package:sudoku_assistant/controllers/trigger_tab_contoroller.dart';
 class RankingPage extends StatefulWidget {
+  final TriggerNotifierContoller triggerNotifierContoller;
+  const RankingPage({
+    Key? key,
+    required this.triggerNotifierContoller,
+    });
   @override
   _RankingPagetate createState() => _RankingPagetate();
 }
@@ -17,6 +23,7 @@ class _RankingPagetate extends State<RankingPage> with SingleTickerProviderState
   List<FirebasePuzzle> numberPuzzles = [];
   FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController();
   LocalStorageService localStorageService = LocalStorageService();
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +93,7 @@ class _RankingPagetate extends State<RankingPage> with SingleTickerProviderState
   void onSaveButtonPressed(FirebasePuzzle firebasePuzzle) async {
     await firebasePuzzleController.insertFirebasePuzzleForLocalOnRanking(firebasePuzzle);
     updatePuzzles();
+    widget.triggerNotifierContoller.isUpdateTriggerNotifier.value = true;
     setState(() {});
   }
 

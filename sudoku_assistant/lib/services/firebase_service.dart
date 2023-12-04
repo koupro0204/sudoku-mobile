@@ -34,7 +34,6 @@ class FirebasePuzzleService {
   }
 
   Future<bool> updateNumberOfPlayer(FirebasePuzzle puzzle) async {
-      print("updateNumberOfPlayer object");
     DatabaseReference ref = _ref.child(puzzle.firebaseId!);
     TransactionResult result = await ref.runTransaction((Object? puzzleData) {
       if (puzzleData == null) {

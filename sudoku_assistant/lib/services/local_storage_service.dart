@@ -311,7 +311,6 @@ class LocalStorageService {
   }
   // update
   Future<int> updateFirebaseData(FirebasePuzzle firebasePuzzle) async {
-    print("updateFirebaseData firebasePuzzle localStroageService");
     final db = await _getDatabase();
     return db.update(
       'firebase_data',

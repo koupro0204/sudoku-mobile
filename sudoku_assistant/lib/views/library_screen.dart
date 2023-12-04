@@ -3,11 +3,16 @@ import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:sudoku_assistant/widgets/pazzule_list.dart';
 import 'package:sudoku_assistant/services/local_storage_service.dart';
 import 'package:sudoku_assistant/controllers/firebase_puzzle_controller.dart';
-
+import 'package:sudoku_assistant/controllers/trigger_tab_contoroller.dart';
 
 enum SourceFilter { all, created, shared }
 enum StatusFilter { all, none, completed, shared }
 class PuzzleLibraryScreen extends StatefulWidget {
+    final TriggerNotifierContoller triggerNotifierContoller;
+    const PuzzleLibraryScreen({
+      Key? key,
+      required this.triggerNotifierContoller,
+      });
   @override
   _PuzzleLibraryScreenState createState() => _PuzzleLibraryScreenState();
 }
@@ -18,7 +23,6 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
   StatusFilter _selectedStatusFilter = StatusFilter.all;
   List<Puzzle> puzzles = []; // This should be populated with your puzzle data
   final FirebasePuzzleController firebasePuzzleController = FirebasePuzzleController();
-
   @override
   void initState() {
     super.initState();
@@ -44,7 +48,6 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
     return puzzles;
   }
 
-  
   List<Puzzle> _getFilteredPuzzles() {
     // puzzlesが空の場合、初期化する
     if (puzzles.isEmpty && !_isLoaded) {
@@ -67,8 +70,6 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
       return sourceFilterPassed && statusFilterPassed;
     }).toList();
   }
-
-
 
   void _handleUpdatePuzzle(Puzzle puzzle) async {
     // LocalStorageServiceのインスタンスを取得
@@ -124,6 +125,17 @@ class _PuzzleLibraryScreenState extends State<PuzzleLibraryScreen> {
 
       body: Column(
         children: [
+          ValueListenableBuilder(
+            valueListenable: widget.triggerNotifierContoller.isUpdateTriggerNotifier,
+            builder: (context, value, child) {
+              if (value == true) {
+                print("gbggggggg");
+                _getFPuzzles(); // 条件を満たすときに関数を実行
+                widget.triggerNotifierContoller.isUpdateTriggerNotifier.value = false;
+              }
+              return Container(); // UIの変更は必要ない場合はContainerを返す
+            },
+          ),
           _buildFilterButtons(),
           Expanded(
             child: ListView.builder(

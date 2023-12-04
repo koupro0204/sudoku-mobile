@@ -4,6 +4,7 @@ import 'package:sudoku_assistant/views/library_screen.dart';
 import 'package:sudoku_assistant/views/share_code_screen.dart';
 import 'package:sudoku_assistant/widgets/bannerAds.dart';
 import 'package:sudoku_assistant/views/ranking_screen.dart';
+import 'package:sudoku_assistant/controllers/trigger_tab_contoroller.dart';
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -12,7 +13,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0; // 現在選択されているタブのインデックス
-
+  final TriggerNotifierContoller triggerNotifierContoller = TriggerNotifierContoller();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,9 +23,9 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           // ここにタブごとの画面ウィジェットを追加
           TopScreen(),  // インデックス0
-          RankingPage(), // インデックス1
-          PuzzleLibraryScreen(), // インデックス2
-          EnterSharedCodeScreen(), // インデックス3
+          RankingPage(triggerNotifierContoller:triggerNotifierContoller), // インデックス1
+          PuzzleLibraryScreen(triggerNotifierContoller:triggerNotifierContoller), // インデックス2
+          EnterSharedCodeScreen(triggerNotifierContoller:triggerNotifierContoller), // インデックス3
         ],
       ),
       bottomNavigationBar: Column(

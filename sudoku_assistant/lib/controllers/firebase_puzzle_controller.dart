@@ -50,7 +50,7 @@ class FirebasePuzzleController {
     } catch (e) {
       // エラー処理
       errorNotifier.value = "エラーが発生しました: $e";
-      print("error: $e");
+      // print("error: $e");
       return [];
     }
   }
