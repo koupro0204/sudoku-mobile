@@ -11,22 +11,71 @@ class FirebasePuzzleController {
   ValueNotifier<bool> isSaveNotifier = ValueNotifier<bool>(false);
   ValueNotifier<FirebasePuzzle?> firebasePuzzleNotifier = ValueNotifier<FirebasePuzzle?>(null);
   final FirebasePuzzleService _firebasePuzzleService = FirebasePuzzleService();
+  LocalStorageService localStorageService = LocalStorageService();
 
+  Future<void> deleteRanking() async {
+    await localStorageService.deleteFirebaseDatas("newest_firebase_data");
+    await localStorageService.deleteFirebaseDatas("completed_firebase_data");
+    await localStorageService.deleteFirebaseDatas("number_firebase_data");
+    // 他の2つも消す。
+  }
+  Future<void> updatePuzzleIdOnRanking(FirebasePuzzle firebasePuzzle, int puzzleId) async {
+    await localStorageService.updateIdentityData("newest_firebase_data", firebasePuzzle, puzzleId);
+    await localStorageService.updateIdentityData("completed_firebase_data", firebasePuzzle, puzzleId);
+    await localStorageService.updateIdentityData("number_firebase_data", firebasePuzzle, puzzleId);
+  }
 
-  Future<List<FirebasePuzzle>> loadNumnerOfPlayerPuzzles(int limit) async {
+  Future<List<FirebasePuzzle>> loadNewestPuzzles(int limit) async {
     try {
-      var loadedPuzzles = await _firebasePuzzleService.getNumnerOfPlayerPuzzles(limit);
-      return loadedPuzzles;
+      List<FirebasePuzzle> firebasePuzzles = await localStorageService.getFirebaseDatas("newest_firebase_data");
+      if (firebasePuzzles.isNotEmpty) {
+        return firebasePuzzles;
+      }else {
+        firebasePuzzles = await _firebasePuzzleService.getNewestPuzzles(limit);
+        List<Puzzle> localSharedPuzzles = await localStorageService.getSharedPuzzles();
+        // ローカルの共有パズルをハッシュマップに変換
+        var localPuzzlesMap = {for (var p in localSharedPuzzles) p.sharedCode: p};
+
+        // Firebaseパズルの更新
+        for (var firebasePuzzle in firebasePuzzles) {
+          var localPuzzle = localPuzzlesMap[firebasePuzzle.sharedCode];
+          if (localPuzzle != null) {
+            firebasePuzzle.puzzleId = localPuzzle.id;
+            firebasePuzzle.puzzle = localPuzzle;
+          }
+        }
+        await localStorageService.insertFirebaseDatas(firebasePuzzles, "newest_firebase_data");
+        return firebasePuzzles;
+      }
     } catch (e) {
       // エラー処理
       errorNotifier.value = "エラーが発生しました: $e";
+      print("error: $e");
       return [];
     }
   }
-  Future<List<FirebasePuzzle>> loadNewestPuzzles(int limit) async {
+  Future<List<FirebasePuzzle>> loadNumberOfPlayerPuzzles(int limit) async {
     try {
-      var loadedPuzzles = await _firebasePuzzleService.getNewestPuzzles(limit);
-      return loadedPuzzles;
+      List<FirebasePuzzle> firebasePuzzles = await localStorageService.getFirebaseDatas("number_firebase_data");
+      if (firebasePuzzles.isNotEmpty) {
+        return firebasePuzzles;
+      }else {
+        firebasePuzzles = await _firebasePuzzleService.getNumnerOfPlayerPuzzles(limit);
+        List<Puzzle> localSharedPuzzles = await localStorageService.getSharedPuzzles();
+        // ローカルの共有パズルをハッシュマップに変換
+        var localPuzzlesMap = {for (var p in localSharedPuzzles) p.sharedCode: p};
+
+        // Firebaseパズルの更新
+        for (var firebasePuzzle in firebasePuzzles) {
+          var localPuzzle = localPuzzlesMap[firebasePuzzle.sharedCode];
+          if (localPuzzle != null) {
+            firebasePuzzle.puzzleId = localPuzzle.id;
+            firebasePuzzle.puzzle = localPuzzle;
+          }
+        }
+        await localStorageService.insertFirebaseDatas(firebasePuzzles, "number_firebase_data");
+        return firebasePuzzles;
+      }
     } catch (e) {
       // エラー処理
       errorNotifier.value = "エラーが発生しました: $e";
@@ -35,30 +84,39 @@ class FirebasePuzzleController {
   }
   Future<List<FirebasePuzzle>> loadTopCompletedPuzzles(int limit) async {
     try {
-      var loadedPuzzles = await _firebasePuzzleService.getTopCompletedPuzzles(limit);
-      firebasePuzzles.value = loadedPuzzles;
-      return loadedPuzzles;
+      List<FirebasePuzzle> firebasePuzzles = await localStorageService.getFirebaseDatas("completed_firebase_data");
+      if (firebasePuzzles.isNotEmpty) {
+        return firebasePuzzles;
+      }else {
+        firebasePuzzles = await _firebasePuzzleService.getTopCompletedPuzzles(limit);
+        List<Puzzle> localSharedPuzzles = await localStorageService.getSharedPuzzles();
+        // ローカルの共有パズルをハッシュマップに変換
+        var localPuzzlesMap = {for (var p in localSharedPuzzles) p.sharedCode: p};
+
+        // Firebaseパズルの更新
+        for (var firebasePuzzle in firebasePuzzles) {
+          var localPuzzle = localPuzzlesMap[firebasePuzzle.sharedCode];
+          if (localPuzzle != null) {
+            firebasePuzzle.puzzleId = localPuzzle.id;
+            firebasePuzzle.puzzle = localPuzzle;
+          }
+        }
+        await localStorageService.insertFirebaseDatas(firebasePuzzles, "completed_firebase_data");
+        return firebasePuzzles;
+      }
     } catch (e) {
       // エラー処理
       errorNotifier.value = "エラーが発生しました: $e";
       return [];
     }
   }
-  // Future<void> loadGetPuzzleById(int puzzleId) async {
-  //   try {
-  //     var loadedPuzzle = await _firebasePuzzleService.getFirebasePuzzleById(puzzleId.toString());
-  //     firebasePuzzleNotifier.value = loadedPuzzle;
-  //   } catch (e) {
-  //     // エラー処理
-  //     errorNotifier.value = "エラーが発生しました: $e";
-  //   }
-  // }
+
   Future<void> loadGetPuzzleBySharedCord(String sharedCode) async {
       errorNotifier.value = null;
       isSaveNotifier.value = false;
       firebasePuzzleNotifier.value = null;
     // ローカルにsharedCodeを持っているものがあるときは、それを渡す。
-    LocalStorageService localStorageService = LocalStorageService();
+    
     Puzzle? localPuzzle = await localStorageService.getPuzzleBySharedCord(sharedCode);
     if (localPuzzle != null) {
       firebasePuzzleNotifier.value = FirebasePuzzle(
@@ -105,7 +163,6 @@ class FirebasePuzzleController {
         sharedCode: sharedCode, // データから取得した共有コードに置き換える
         source: puzzle.source,
       );
-      LocalStorageService localStorageService = LocalStorageService();
       await localStorageService.updatePuzzle(updatePuzzle);
       await localStorageService.insertFirebaseData(firebasePuzzle);
       firebasePuzzleNotifier.value = firebasePuzzle;
@@ -116,8 +173,7 @@ class FirebasePuzzleController {
       return null;
     }
   }
-  Future<void> insertFirebasePuzzleForLocal(FirebasePuzzle puzzle) async {
-    LocalStorageService localStorageService = LocalStorageService();
+  Future<void> insertFirebasePuzzleForLocalOnRanking(FirebasePuzzle puzzle) async {
     Puzzle localPuzzle = Puzzle(
       grid: puzzle.grid,
       name: puzzle.name,
@@ -143,14 +199,39 @@ class FirebasePuzzleController {
     await localStorageService.insertFirebaseData(firebasePuzzle);
     // 保存したら、FirebaseのデータのNumberOfPlayerを更新する
     await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
+    updatePuzzleIdOnRanking(firebasePuzzle, puzzleId);
+  }
+  Future<void> insertFirebasePuzzleForLocal(FirebasePuzzle puzzle) async {
+    Puzzle localPuzzle = Puzzle(
+      grid: puzzle.grid,
+      name: puzzle.name,
+      status: StatusNumber.none,
+      creationDate: puzzle.creationDate,
+      sharedCode: puzzle.sharedCode, // データから取得した共有コードに置き換える
+      source: SourceNumber.share,
+    );
 
+    int puzzleId = await localStorageService.insertPuzzle(localPuzzle);
+    localPuzzle = localPuzzle.copyWith(id: puzzleId);
+    FirebasePuzzle firebasePuzzle = FirebasePuzzle(
+      firebaseId: puzzle.firebaseId,
+      grid: puzzle.grid,
+      name: puzzle.name,
+      puzzleId: puzzleId,
+      creationDate: puzzle.creationDate,
+      puzzle: localPuzzle,
+      completedPlayer: puzzle.completedPlayer,
+      numberOfPlayer: puzzle.numberOfPlayer + 1,
+      sharedCode: puzzle.sharedCode, // データから取得した共有コードに置き換える
+    );
+    await localStorageService.insertFirebaseData(firebasePuzzle);
+    // 保存したら、FirebaseのデータのNumberOfPlayerを更新する
+    await _firebasePuzzleService.updateNumberOfPlayer(firebasePuzzle);
     isSaveNotifier.value = true;
-
     firebasePuzzleNotifier.value = firebasePuzzle;
   }
 
   Future<void> updateCompletedOfPlayer(String sharedCode) async {
-    LocalStorageService localStorageService = LocalStorageService();
     FirebasePuzzle? localFirebasePuzzle = await localStorageService.getFirebaseDataBySharedCord(sharedCode);
     if (localFirebasePuzzle == null) {
       errorNotifier.value = "エラーが発生しました: データがありません。";

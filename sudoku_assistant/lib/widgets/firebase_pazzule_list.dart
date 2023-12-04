@@ -2,16 +2,114 @@ import 'package:flutter/material.dart';
 import 'package:sudoku_assistant/models/firebase_puzzle.dart';
 import 'package:sudoku_assistant/models/puzzle.dart';
 import 'package:intl/intl.dart';
-
+import 'package:sudoku_assistant/widgets/preview.dart';
+import 'package:sudoku_assistant/views/play_screen.dart';
+import 'package:sudoku_assistant/services/local_storage_service.dart';
 class FirebasePuzzleEntry extends StatelessWidget {
   final FirebasePuzzle puzzle;
-  // final Function(int) onGetByPuzzuleId;
+  final Function(int) onGetByPuzzuleId;
+  final Function(FirebasePuzzle) onSaveButtonPressed;
   // final Function(Puzzle) onShare; // Callback for sharing the puzzle
   const FirebasePuzzleEntry({super.key,
     // required this.onShare,
     required this.puzzle,
-    // required this.onGetByPuzzuleId,
+    required this.onGetByPuzzuleId,
+    required this.onSaveButtonPressed,
   });
+  // _showPreviewDialogがポップアップとして表示されます。
+  void _showPreviewDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return FutureBuilder<PlayingData>(
+          future: onGetByPuzzuleId(puzzle.puzzle!.id!),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              // データの読み込み中に表示するウィジェットを返す
+              return const CircularProgressIndicator(); // 例えば読み込み中のプログレスインジケータ
+            } else if (snapshot.hasError) {
+              // エラーが発生した場合に表示するウィジェットを返す
+              return Text('Error: ${snapshot.error}');
+            } else {
+              // データの読み込みが成功した場合に表示するウィジェットを返す
+              final playingData = snapshot.data;
+              final isPlayingData = playingData!.id != null;
+              return AlertDialog(
+                title: Text(puzzle.name),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        "share cord: "+puzzle.sharedCode,
+                        style: const TextStyle(
+                          fontSize: 16, 
+                          color: Colors.black, // 色を少し薄くする
+                        ),
+                      ),
+                      SizedBox(height: 16), // 余白を追加
+                      Flexible(
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          child: PreviewGrid(
+                            grid: puzzle.grid,
+                            currentState: playingData.currentGrid,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                actions: <Widget>[ 
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        child: Text("close"),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      isPlayingData ?
+                      TextButton(
+                        child: Text("restart"),
+                        onPressed: () {
+                          LocalStorageService().deletePlayingData(playingData.id!);
+                          // 問題画面に遷移する
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => PlayPuzzleScreen(
+                              puzzle: puzzle.puzzle!,
+                              playingData: PlayingData(
+                                id: null,
+                                currentGrid: List.generate(9, (_) => List.filled(9, 0)),
+                              )
+                            )),
+                          );
+                        },
+                      )
+                      : Container(),
+                      TextButton(
+                        child: Text("play"),
+                        onPressed: () {
+                          // 問題画面に遷移する
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => PlayPuzzleScreen(puzzle: puzzle.puzzle!, playingData: playingData,)),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+
+                ],
+              );
+            }
+          },
+        );
+      },
+    );
+  }
 
   // パズルのステータスに応じて適切なバッジを生成するメソッド
   Widget _buildStatusBadge() {
@@ -49,63 +147,73 @@ class FirebasePuzzleEntry extends StatelessWidget {
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  final isGet = puzzle.puzzle != null;
-  return ListTile(
-    onTap: () {
-      // パズルの詳細画面に遷移するコードをここに追加
-      // _showPreviewDialog(context);
-    },
-    title: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        
-        SizedBox(height: 3), // 一段目と二段目の間にスペースを追加
-        Row(
+  @override
+  Widget build(BuildContext context) {
+    final isGet = puzzle.puzzle != null;
+    return ListTile(
+      onTap: () {
+        // パズルの詳細画面に遷移するコードをここに追加
+        isGet ?_showPreviewDialog(context) :onSaveButtonPressed(puzzle);
+      },
+      title: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8), // タイトル周辺のパディングを追加
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                // _buildSourceBadge(),
-                _buildStatusBadge(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // _buildSourceBadge(),
+                    _buildStatusBadge(),
+                  ],
+                ),
+                const SizedBox(width: 8), // バッジと名前の間のスペースを増やす
+                Expanded( // テキストがオーバーフローしないようにする
+                  child: Text(
+                    puzzle.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold, // 名前のフォントウェイトを変更
+                    ),
+                  ),
+                ),
               ],
             ),
-            SizedBox(width: 3), // バッジと名前の間にスペースを追加
-            Text(puzzle.name),
+            const SizedBox(height: 4), // 追加のスペース
+            Text(
+              '${puzzle.completedPlayer}/${puzzle.numberOfPlayer}人がクリア済み',
+              style: const TextStyle(
+                fontSize: 16, 
+              ),
+            ),
+            Text(
+              'Created on ${DateFormat('yyyy-MM-dd HH:mm').format(puzzle.creationDate)}',
+              style: const TextStyle(
+                fontSize: 12, 
+                color: Colors.grey, // 色を少し薄くする
+              ),
+            ),
           ],
         ),
-        Text(
-          puzzle.completedPlayer.toString() + '/' + puzzle.numberOfPlayer.toString() + '人がクリア済み',
-          style: TextStyle(
-            fontSize: 14, // サブタイトルのフォントサイズを調整
+      ),
+      trailing: ElevatedButton(
+        onPressed: () {
+          isGet ?_showPreviewDialog(context) :onSaveButtonPressed(puzzle);
+        },
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all<Color>(
+            isGet ? Colors.blue : Colors.greenAccent.shade700, // 背景色の調整
+          ),
+          padding: MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(10)), // ボタンのパディングを追加
+        ),
+        child: Text(
+          isGet ? 'プレイ' : '取得',
+          style: const TextStyle(
+            color: Colors.white,
           ),
         ),
-        Text(
-          'Created on ${DateFormat('yyyy-MM-dd HH:mm').format(puzzle.creationDate)}',
-          style: TextStyle(
-            fontSize: 12, // サブタイトルのフォントサイズを調整
-          ),
-        ),
-
-      ],
-    ),
-    trailing: ElevatedButton(
-      onPressed: () {
-        // _showShareDialog(context); // パズルを共有するダイアログを表示
-      },
-      style: ButtonStyle(
-        backgroundColor: isGet
-            ? MaterialStateProperty.all<Color>(Colors.blue) // 選択されたボタンの背景色
-            : MaterialStateProperty.all<Color>(Colors.greenAccent.shade700), // 選択されていないボタンの背景色
       ),
-      child: Text(
-        isGet ?'プレイ':"取得",
-        style: TextStyle(
-          color: Colors.white, // テキストの色
-        ),
-      ),
-    ),
-  );
-}
+    );
+  }
 }

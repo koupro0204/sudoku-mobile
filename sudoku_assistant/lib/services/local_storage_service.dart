@@ -31,7 +31,7 @@ class LocalStorageService {
     // await deleteDatabase(path);
     return await openDatabase(
       path,
-      version: 2, // バージョン番号を増やす
+      version: 6, // バージョン番号を増やす
       onCreate: _onCreate,
       onUpgrade: _onUpgrade, // アップグレードのコールバックを追加
     );
@@ -80,27 +80,124 @@ class LocalStorageService {
         FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
       )
     ''');
-    // await db.execute('''
-    //   CREATE TABLE newest_firebase_data(
-    //     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    //     firebaseId TEXT,
-    //     grid TEXT,
-    //     name TEXT,
-    //     sharedCode TEXT,
-    //     completedPlayer INTEGER,
-    //     numberOfPlayer INTEGER,
-    //     creationDate TEXT,
-    //   )
-    // ''');
+    await db.execute('''
+      CREATE TABLE newest_firebase_data(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebaseId TEXT,
+        puzzleId INTEGER,
+        grid TEXT,
+        name TEXT,
+        sharedCode TEXT,
+        completedPlayer INTEGER,
+        numberOfPlayer INTEGER,
+        creationDate TEXT,
+        FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE completed_firebase_data(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebaseId TEXT,
+        puzzleId INTEGER,
+        grid TEXT,
+        name TEXT,
+        sharedCode TEXT,
+        completedPlayer INTEGER,
+        numberOfPlayer INTEGER,
+        creationDate TEXT,
+        FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE number_firebase_data(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        firebaseId TEXT,
+        puzzleId INTEGER,
+        grid TEXT,
+        name TEXT,
+        sharedCode TEXT,
+        completedPlayer INTEGER,
+        numberOfPlayer INTEGER,
+        creationDate TEXT,
+        FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
+      )
+    ''');
   }
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // データベーススキーマの変更（テーブルの追加、列の追加、データの移行など）を行うため
-    // if (oldVersion < 2) {
-    //   // バージョン7からバージョン8にアップグレードするためのスキーマ変更
-    //   await db.execute('ALTER TABLE firebase_data ADD COLUMN creationDate TEXT');
-    // }
-    // バージョンごとに必要なアップグレード手順を追加します。
+    if (oldVersion < 3) {
+      // バージョン7からバージョン8にアップグレードするためのスキーマ変更
+      await db.execute('''
+        CREATE TABLE newest_firebase_data(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          firebaseId TEXT,
+          grid TEXT,
+          name TEXT,
+          sharedCode TEXT,
+          completedPlayer INTEGER,
+          numberOfPlayer INTEGER,
+          creationDate TEXT
+        )
+      ''');
+    }
+    if (oldVersion < 4) {
+      await db.execute(
+        'ALTER TABLE newest_firebase_data ADD COLUMN puzzleId INTEGER'
+        );
+    }
+    if (oldVersion < 5) {
+      // 新しいテーブルを作成
+      await db.execute('''
+        CREATE TABLE newest_firebase_data_temp(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          firebaseId TEXT,
+          grid TEXT,
+          name TEXT,
+          sharedCode TEXT,
+          completedPlayer INTEGER,
+          numberOfPlayer INTEGER,
+          creationDate TEXT,
+          puzzleId INTEGER,
+          FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
+        )
+      ''');
+      // 古いテーブルを削除
+      await db.execute('DROP TABLE newest_firebase_data');
+      // 新しいテーブルをリネーム
+      await db.execute('ALTER TABLE newest_firebase_data_temp RENAME TO newest_firebase_data');
+    }
+    if (oldVersion < 6) {
+      await db.execute('''
+        CREATE TABLE completed_firebase_data(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          firebaseId TEXT,
+          puzzleId INTEGER,
+          grid TEXT,
+          name TEXT,
+          sharedCode TEXT,
+          completedPlayer INTEGER,
+          numberOfPlayer INTEGER,
+          creationDate TEXT,
+          FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE number_firebase_data(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          firebaseId TEXT,
+          puzzleId INTEGER,
+          grid TEXT,
+          name TEXT,
+          sharedCode TEXT,
+          completedPlayer INTEGER,
+          numberOfPlayer INTEGER,
+          creationDate TEXT,
+          FOREIGN KEY (puzzleId) REFERENCES puzzles (id)
+        )
+      ''');
+    }
+    // 他のバージョンアップグレードの処理をここに追加
   }
+
 
   // CRUD operations:
   // Insert a new puzzle
@@ -113,6 +210,13 @@ class LocalStorageService {
   Future<List<Puzzle>> getPuzzles() async {
     final db = await _getDatabase();
     final List<Map<String, dynamic>> maps = await db.query('puzzles');
+    return List.generate(maps.length, (i) => Puzzle.fromMap(maps[i]));
+  }
+
+  // Retrieve shared puzzles
+  Future<List<Puzzle>> getSharedPuzzles() async {
+    final db = await _getDatabase();
+    final List<Map<String, dynamic>> maps = await db.query('puzzles', where: 'source = ?', whereArgs: [SourceNumber.share]);
     return List.generate(maps.length, (i) => Puzzle.fromMap(maps[i]));
   }
   Future<Puzzle> getPuzzleById(int id) async {
@@ -223,6 +327,60 @@ class LocalStorageService {
       return null;
     }
     return FirebasePuzzle.fromMap(maps.first);
+  }
+
+  // ranking_firebase_dataのCRUD操作
+  Future<void> insertFirebaseDatas(List<FirebasePuzzle> firebasePuzzles, String tableName) async {
+    final db = await _getDatabase();
+    Batch batch = db.batch();
+    firebasePuzzles.forEach((firebasePuzzle) {
+      batch.insert(tableName, firebasePuzzle.toMap());
+    });
+    await batch.commit(noResult: true);
+  }
+
+  // get all datas
+  Future<List<FirebasePuzzle>> getFirebaseDatas(String tableName) async {
+    final db = await _getDatabase();
+    // newest_firebase_data と puzzles を結合してデータを取得
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT 
+        n.*,
+        p.id AS p_id,
+        p.grid AS p_grid,
+        p.name AS p_name,
+        p.status AS p_status,
+        p.creationDate AS p_creationDate,
+        p.sharedCode AS p_sharedCode, 
+        p.source AS p_source
+      FROM $tableName n
+      LEFT JOIN puzzles p ON n.puzzleId = p.id
+    ''');
+    // 結合されたデータから FirebasePuzzle オブジェクトを生成
+    return List.generate(maps.length, (i) {
+      return FirebasePuzzle.andPuzzleFromMap(maps[i]);
+    });
+  }
+
+
+  // delete all datas
+  Future<void> deleteFirebaseDatas(String tableName) async {
+    final db = await _getDatabase();
+    await db.delete(tableName);
+  }
+
+  // update identity data
+  Future<void> updateIdentityData(String tableName, FirebasePuzzle firebasePuzzle, int puzzleId) async {
+    final db = await _getDatabase();
+    await db.update(
+      tableName,
+      {
+        'puzzleId': puzzleId,
+        'numberOfPlayer': firebasePuzzle.numberOfPlayer,
+      },
+      where: 'firebaseId = ?',
+      whereArgs: [firebasePuzzle.firebaseId],
+    );
   }
 
 }

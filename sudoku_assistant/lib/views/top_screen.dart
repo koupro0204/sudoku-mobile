@@ -140,22 +140,6 @@ class TopScreenState extends State<TopScreen> {
                         },
                         child: const Text('Create Puzzle'),
                       ),
-                      // ElevatedButton(
-                      //   onPressed: () {
-                      //     // indicate widget for entering shared code
-                      //     // or
-                      //     // Navigate to the Enter Shared Code Screen
-                      //     // text box dialog
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //         builder: (context) => EnterSharedCodeScreen(),
-                      //       ),
-                      //     );
-
-                      //   },
-                      //   child: const Text('Enter Shared Code'),
-                      // ),
                     ],
                   );
                 }

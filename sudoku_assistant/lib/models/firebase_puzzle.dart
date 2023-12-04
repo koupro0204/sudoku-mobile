@@ -42,8 +42,6 @@ class FirebasePuzzle {
     );
   }
 
-
-
   // FirebasePuzzleオブジェクトをJSONに変換するメソッド
   Map<String, dynamic> toJson() {
     return {
@@ -87,6 +85,39 @@ class FirebasePuzzle {
       puzzleId: map['puzzleId'],
       completedPlayer: map['completedPlayer'],
       numberOfPlayer: map['numberOfPlayer'],
+    );
+  }
+  factory FirebasePuzzle.andPuzzleFromMap(Map<String, dynamic> map) {
+    Puzzle? puzzle;
+    if (map['puzzleId'] != null) {
+      puzzle = Puzzle(
+        id: map['p_id'],
+        grid: (jsonDecode(map['p_grid']) as List<dynamic>)
+            .map((dynamic row) => row as List)
+            .map((row) => row.map((cell) => cell as int).toList())
+            .toList(),
+        name: map['p_name'],
+        creationDate: DateTime.parse(map['p_creationDate']),
+        sharedCode: map['p_sharedCode'],
+        status: map['p_status'] ?? StatusNumber.none,
+        source: map['p_source'] ?? SourceNumber.created,
+      );
+    }
+
+    return FirebasePuzzle(
+      id: map['id'],
+      firebaseId: map['firebaseId'],
+      grid: (jsonDecode(map['grid']) as List<dynamic>)
+          .map((dynamic row) => row as List)
+          .map((row) => row.map((cell) => cell as int).toList())
+          .toList(),
+      name: map['name'],
+      creationDate: DateTime.parse(map['creationDate']),
+      sharedCode: map['sharedCode'],
+      puzzleId: map['puzzleId'],
+      completedPlayer: map['completedPlayer'],
+      numberOfPlayer: map['numberOfPlayer'],
+      puzzle: puzzle,  // Puzzle オブジェクトを含める
     );
   }
 }
